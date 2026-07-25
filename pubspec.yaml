@@ -1,0 +1,90 @@
+name: vision_note_ai
+description: "Transform whiteboards, handwritten notes, and documents into structured, AI-powered knowledge."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # UI
+  cupertino_icons: ^1.0.8
+  flutter_animate: ^4.5.2
+
+  # State Management
+  flutter_bloc: ^9.1.0
+  bloc: ^9.0.0
+
+  # DI
+  get_it: ^9.2.1
+  injectable: ^3.0.0
+
+  # Routing
+  auto_route: ^11.1.0
+
+  # Database
+  sqlite3: ^3.5.0
+  sqlite3_flutter_libs: ^0.6.0+eol
+  path_provider: ^2.1.5
+  path: ^1.9.1
+
+  # Settings / Cache
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # FFI
+  ffi: ^2.1.0
+
+  # Secure Storage
+  flutter_secure_storage: ^10.3.1
+
+  # (No json_annotation needed — manual JSON via dart:convert)
+
+  # Camera
+  camera: ^0.12.0+2
+  permission_handler: ^12.0.3
+
+  # OCR
+  google_mlkit_text_recognition: ^0.16.0
+
+  # Share / Export
+  share_plus: ^13.3.0
+  open_file: ^4.0.0
+
+  # Network
+  http: ^1.3.0
+  connectivity_plus: ^7.3.1
+
+  # Image
+  image_picker: ^1.1.2
+
+  # Utils
+  intl: ^0.20.2
+  equatable: ^2.0.7
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Code Generators
+  build_runner: ^2.4.15
+  injectable_generator: ^3.0.2
+  auto_route_generator: ^10.5.0
+
+  # Testing
+  bloc_test: ^10.0.0
+  mocktail: ^1.0.4
+
+  # Linting
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/screenshots/
+    - assets/onboarding/

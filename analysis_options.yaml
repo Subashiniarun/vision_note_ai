@@ -1,0 +1,35 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    invalid_annotation_target: ignore
+    missing_return: error
+    dead_code: warning
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.gr.dart"
+    - "**/*.freezed.dart"
+    - "**/*.config.dart"
+    - "lib/core/router/app_router.gr.dart"
+    - "lib/core/database/app_database.g.dart"
+    - "lib/core/di/injection.g.dart"
+
+linter:
+  rules:
+    - always_declare_return_types
+    - always_use_package_imports
+    - annotate_overrides
+    - avoid_print
+    - await_only_futures
+    - camel_case_types
+    - directives_ordering
+    - exhaustive_cases
+    - no_duplicate_case_values
+    - prefer_const_constructors
+    - prefer_const_declarations
+    - prefer_final_locals
+    - prefer_single_quotes
+    - require_trailing_commas
+    - unnecessary_const
+    - unnecessary_new
+    - use_super_parameters
