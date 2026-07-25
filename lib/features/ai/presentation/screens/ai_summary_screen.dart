@@ -20,12 +20,13 @@ class _AISummaryScreenState extends State<AISummaryScreen> {
   void initState() {
     super.initState();
     _aiBloc = getIt<AIBloc>();
-    final args =
-        context.router.current?.args as Map<String, dynamic>?;
-    _text = (args?['text'] as String?) ?? '';
-    if (_text.isNotEmpty) {
-      _aiBloc.add(SetAIText(_text));
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      _text = (args?['text'] as String?) ?? '';
+      if (_text.isNotEmpty) {
+        _aiBloc.add(SetAIText(_text));
+      }
+    });
   }
 
   @override

@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../bloc/image_process_bloc.dart';
 import '../../../../core/di/injection.dart';
@@ -21,12 +23,18 @@ class _EnhancementScreenState extends State<EnhancementScreen> {
   void initState() {
     super.initState();
     _bloc = getIt<ImageProcessBloc>();
-    final args =
-        context.router.current?.args as Map<String, dynamic>?;
-    final croppedImage = args?['croppedImage'] as Uint8List?;
-    if (croppedImage != null) {
-      _bloc.add(LoadImage(''));
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+        final croppedImage = args?['croppedImage'] as Uint8List?;
+        if (croppedImage != null) {
+          final dir = await getTemporaryDirectory();
+          final path = '${dir.path}/enhance_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          await File(path).writeAsBytes(croppedImage);
+          _bloc.add(LoadImage(path));
+        }
+      } catch (_) {}
+    });
   }
 
   @override
@@ -44,6 +52,8 @@ class _EnhancementScreenState extends State<EnhancementScreen> {
           builder: (context, state) {
             return switch (state) {
               EnhanceReady(current: final img) =>
+                _buildEnhanceView(context, img),
+              ImageLoaded(original: final img) =>
                 _buildEnhanceView(context, img),
               EnhanceProcessing() =>
                 const Center(child: CircularProgressIndicator()),

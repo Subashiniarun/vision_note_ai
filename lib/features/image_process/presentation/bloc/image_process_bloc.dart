@@ -142,8 +142,11 @@ class ImageProcessBloc extends Bloc<ImageProcessEvent, ImageProcessState> {
     Emitter<ImageProcessState> emit,
   ) {
     final current = state;
-    if (current is! EnhanceReady) return;
-    emit(EnhanceComplete(current.current));
+    if (current is EnhanceReady) {
+      emit(EnhanceComplete(current.current));
+    } else if (current is ImageLoaded) {
+      emit(EnhanceComplete(current.original));
+    }
   }
 
   void _onResetEnhancement(

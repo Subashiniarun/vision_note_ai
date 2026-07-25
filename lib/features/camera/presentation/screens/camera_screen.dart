@@ -47,6 +47,7 @@ class _CameraScreenState extends State<CameraScreen> {
           listener: (context, state) {
             if (state is CameraCaptured) {
               context.pushRoute(PageRouteInfo.named('CropEditorRoute', args: {'imagePath': state.imagePath}));
+              _cameraBloc.add(const ResetCapture());
             }
           },
           builder: (context, state) {
@@ -120,7 +121,6 @@ class _CameraScreenState extends State<CameraScreen> {
                 final image = await controller.takePicture();
                 final bytes = await image.readAsBytes();
                 _cameraBloc.add(CaptureFrame(
-                  frame: null!,
                   imageBytes: bytes,
                 ));
               },

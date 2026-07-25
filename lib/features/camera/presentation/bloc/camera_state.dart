@@ -25,10 +25,11 @@ class CameraReady extends CameraState {
 }
 
 class CameraCaptured extends CameraState {
+  final CameraController controller;
   final String imagePath;
-  const CameraCaptured(this.imagePath);
+  const CameraCaptured(this.controller, this.imagePath);
   @override
-  List<Object> get props => [imagePath];
+  List<Object> get props => [controller, imagePath];
 }
 
 class CameraError extends CameraState {

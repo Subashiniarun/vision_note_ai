@@ -1,20 +1,17 @@
+import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart'
     hide TextBlock, TextLine, TextWord;
+import 'package:path_provider/path_provider.dart';
 import '../../../domain/entities/ocr_result.dart';
 
 class OCREngine {
   Future<OCRResult> recognizeText(Uint8List imageBytes, String language) async {
-    final navigator = InputImage.fromBytes(
-      bytes: imageBytes,
-      metadata: InputImageMetadata(
-        size: Size.zero,
-        rotation: InputImageRotation.rotation0deg,
-        format: InputImageFormat.yuv_420_888,
-        bytesPerRow: 0,
-      ),
-    );
+    final dir = await getTemporaryDirectory();
+    final path = '${dir.path}/ocr_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final file = File(path);
+    await file.writeAsBytes(imageBytes);
+    final navigator = InputImage.fromFile(file);
 
     final extractor = TextRecognizer(
       script: _mapLanguage(language),

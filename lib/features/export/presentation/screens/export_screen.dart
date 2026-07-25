@@ -21,12 +21,13 @@ class _ExportScreenState extends State<ExportScreen> {
   void initState() {
     super.initState();
     _exportBloc = getIt<ExportBloc>();
-    final args =
-        context.router.current?.args as Map<String, dynamic>?;
-    final scan = args?['scan'] as Scan?;
-    if (scan != null) {
-      _exportBloc.add(SetExportScan(scan));
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final scan = args?['scan'] as Scan?;
+      if (scan != null) {
+        _exportBloc.add(SetExportScan(scan));
+      }
+    });
   }
 
   @override
@@ -48,6 +49,11 @@ class _ExportScreenState extends State<ExportScreen> {
             if (state is CopiedToClipboard) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Copied to clipboard')),
+              );
+            }
+            if (state is ExportError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Export failed: ${state.message}')),
               );
             }
           },

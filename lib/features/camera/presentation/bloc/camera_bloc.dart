@@ -19,6 +19,7 @@ class CameraBloc extends Bloc<CameraEvent, CameraState> {
     on<InitializeCamera>(_onInitialize);
     on<CaptureFrame>(_onCapture);
     on<ToggleFlash>(_onToggleFlash);
+    on<ResetCapture>(_onResetCapture);
     on<DisposeCamera>(_onDispose);
   }
 
@@ -55,10 +56,9 @@ class CameraBloc extends Bloc<CameraEvent, CameraState> {
     try {
       final dir = await getTemporaryDirectory();
       final path = '${dir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
-      await current.controller.takePicture();
       final file = File(path);
       await file.writeAsBytes(event.imageBytes);
-      emit(CameraCaptured(path));
+      emit(CameraCaptured(current.controller, path));
     } catch (e) {
       emit(CameraError(e.toString()));
     }
@@ -77,12 +77,24 @@ class CameraBloc extends Bloc<CameraEvent, CameraState> {
     emit(CameraReady(current.controller, flashMode: newFlash));
   }
 
+  void _onResetCapture(
+    ResetCapture event,
+    Emitter<CameraState> emit,
+  ) {
+    final current = state;
+    if (current is CameraCaptured) {
+      emit(CameraReady(current.controller, flashMode: FlashMode.off));
+    }
+  }
+
   void _onDispose(
     DisposeCamera event,
     Emitter<CameraState> emit,
   ) {
     final current = state;
     if (current is CameraReady) {
+      current.controller.dispose();
+    } else if (current is CameraCaptured) {
       current.controller.dispose();
     }
     emit(CameraInitial());

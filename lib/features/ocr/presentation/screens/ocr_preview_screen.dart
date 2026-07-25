@@ -24,13 +24,14 @@ class _OCRPreviewScreenState extends State<OCRPreviewScreen> {
   void initState() {
     super.initState();
     _ocrBloc = getIt<OCRBloc>();
-    final args =
-        context.router.current?.args as Map<String, dynamic>?;
-    final enhancedImage = args?['enhancedImage'] as Uint8List?;
-    if (enhancedImage != null) {
-      _ocrBloc.add(SetOCRImage(enhancedImage, 'en'));
-      _ocrBloc.add(const ExtractTextRequest());
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final enhancedImage = args?['enhancedImage'] as Uint8List?;
+      if (enhancedImage != null && enhancedImage.isNotEmpty) {
+        _ocrBloc.add(SetOCRImage(enhancedImage, 'en'));
+        _ocrBloc.add(const ExtractTextRequest());
+      }
+    });
   }
 
   @override
