@@ -18,7 +18,7 @@ class OCRRepository implements IOCRRepository {
   @override
   Future<List<String>> getAvailableLanguages() async {
     return [
-      'en', 'es', 'fr', 'de', 'it', 'pt', 'nl', 'ru', 'ja', 'zh',
+      'en', 'es', 'fr', 'de', 'it', 'pt', 'nl', 'ru', 'ja', 'ko', 'zh',
     ];
   }
 }

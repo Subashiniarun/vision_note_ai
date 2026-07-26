@@ -85,8 +85,9 @@ Future<_i174.GetIt> $initGetIt(
   gh.lazySingleton<_i519.Client>(() => appModule.httpClient);
   gh.lazySingleton<_i557.ApiClient>(() => appModule.apiClient);
   gh.lazySingleton<_i895.Connectivity>(() => appModule.connectivity);
-  gh.lazySingleton<_i491.ConnectivityService>(
+  await gh.lazySingletonAsync<_i491.ConnectivityService>(
     () => appModule.connectivityService,
+    preResolve: true,
   );
   gh.factory<_i976.IExportRepository>(
     () => _i823.ExportRepository(gh<_i730.FileStorage>()),

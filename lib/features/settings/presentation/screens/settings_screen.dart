@@ -145,7 +145,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final languages = {
       'en': 'English', 'es': 'Spanish', 'fr': 'French',
       'de': 'German', 'it': 'Italian', 'pt': 'Portuguese',
-      'nl': 'Dutch', 'ru': 'Russian', 'ja': 'Japanese', 'zh': 'Chinese',
+      'nl': 'Dutch', 'ru': 'Russian', 'ja': 'Japanese', 'ko': 'Korean', 'zh': 'Chinese',
     };
     return languages[code] ?? code;
   }
@@ -156,7 +156,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (_) => SimpleDialog(
         title: const Text('Select OCR Language'),
         children: [
-          'en', 'es', 'fr', 'de', 'it', 'pt', 'nl', 'ru', 'ja', 'zh',
+          'en', 'es', 'fr', 'de', 'it', 'pt', 'nl', 'ru', 'ja', 'ko', 'zh',
         ].map((code) {
           return SimpleDialogOption(
             onPressed: () {

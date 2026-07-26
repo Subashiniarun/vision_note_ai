@@ -34,6 +34,10 @@ class AIBloc extends Bloc<AIEvent, AIState> {
     GenerateSummary event,
     Emitter<AIState> emit,
   ) async {
+    if (_text.trim().isEmpty) {
+      emit(AIError('No text to process. Extract text from an image first.'));
+      return;
+    }
     emit(AILoading('Generating summary...'));
     try {
       final summary = await _aiRepository.generateSummary(_text);
@@ -47,6 +51,10 @@ class AIBloc extends Bloc<AIEvent, AIState> {
     GenerateActionItems event,
     Emitter<AIState> emit,
   ) async {
+    if (_text.trim().isEmpty) {
+      emit(AIError('No text to process. Extract text from an image first.'));
+      return;
+    }
     emit(AILoading('Extracting action items...'));
     try {
       final items = await _aiRepository.generateActionItems(_text);
@@ -60,6 +68,10 @@ class AIBloc extends Bloc<AIEvent, AIState> {
     GenerateFlashcards event,
     Emitter<AIState> emit,
   ) async {
+    if (_text.trim().isEmpty) {
+      emit(AIError('No text to process. Extract text from an image first.'));
+      return;
+    }
     emit(AILoading('Generating flashcards...'));
     try {
       final flashcards = await _aiRepository.generateFlashcards(_text);
@@ -73,6 +85,10 @@ class AIBloc extends Bloc<AIEvent, AIState> {
     GenerateMindMap event,
     Emitter<AIState> emit,
   ) async {
+    if (_text.trim().isEmpty) {
+      emit(AIError('No text to process. Extract text from an image first.'));
+      return;
+    }
     emit(AILoading('Generating mind map...'));
     try {
       final mindMap = await _aiRepository.generateMindMap(_text);
@@ -86,6 +102,10 @@ class AIBloc extends Bloc<AIEvent, AIState> {
     TranslateText event,
     Emitter<AIState> emit,
   ) async {
+    if (_text.trim().isEmpty) {
+      emit(AIError('No text to process. Extract text from an image first.'));
+      return;
+    }
     emit(AILoading('Translating...'));
     try {
       final result =
@@ -100,6 +120,10 @@ class AIBloc extends Bloc<AIEvent, AIState> {
     FixGrammar event,
     Emitter<AIState> emit,
   ) async {
+    if (_text.trim().isEmpty) {
+      emit(AIError('No text to process. Extract text from an image first.'));
+      return;
+    }
     emit(AILoading('Fixing grammar...'));
     try {
       final result = await _aiRepository.fixGrammar(_text);
@@ -113,6 +137,10 @@ class AIBloc extends Bloc<AIEvent, AIState> {
     AskAIQuestion event,
     Emitter<AIState> emit,
   ) async {
+    if (_text.trim().isEmpty) {
+      emit(AIError('No text to process. Extract text from an image first.'));
+      return;
+    }
     final current = state;
     final messages = current is ChatActive
         ? List<ChatMessage>.from(current.messages)

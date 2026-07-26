@@ -38,7 +38,11 @@ abstract class AppModule {
   @lazySingleton
   Connectivity get connectivity => Connectivity();
 
+  @preResolve
   @lazySingleton
-  ConnectivityService get connectivityService =>
-      ConnectivityService(connectivity);
+  Future<ConnectivityService> get connectivityService async {
+    final service = ConnectivityService(connectivity);
+    await service.initialize();
+    return service;
+  }
 }

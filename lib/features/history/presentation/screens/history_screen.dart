@@ -122,7 +122,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             const PopupMenuItem(value: 'delete', child: Text('Delete')),
           ],
         ),
-        onTap: () => context.navigateToPath('/scan/${scan.id}'),
+        onTap: () => context.pushRoute(PageRouteInfo.named('ScanDetailRoute', args: {'scanId': scan.id})),
       ),
     );
   }

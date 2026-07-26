@@ -109,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
       subtitle:
           '${scan.createdAt.day}/${scan.createdAt.month}/${scan.createdAt.year}',
       tags: scan.tags.isNotEmpty ? scan.tags : null,
-      onTap: () => context.navigateToPath('/scan/${scan.id}'),
+      onTap: () => context.pushRoute(PageRouteInfo.named('ScanDetailRoute', args: {'scanId': scan.id})),
     );
   }
 }

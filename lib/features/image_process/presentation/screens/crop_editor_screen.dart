@@ -59,7 +59,11 @@ class _CropEditorScreenState extends State<CropEditorScreen> {
         body: BlocConsumer<ImageProcessBloc, ImageProcessState>(
           listener: (context, state) {
             if (state is CropReady) {
-              context.pushRoute(PageRouteInfo.named('EnhancementRoute', args: {'croppedImage': state.cropped}));
+              final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+              context.pushRoute(PageRouteInfo.named('EnhancementRoute', args: {
+                'croppedImage': state.cropped,
+                'imagePath': args?['imagePath'],
+              }));
             }
           },
           builder: (context, state) {

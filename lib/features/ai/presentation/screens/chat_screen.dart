@@ -22,12 +22,13 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _aiBloc = getIt<AIBloc>();
-    final args =
-        context.router.current?.args as Map<String, dynamic>?;
-    final text = (args?['text'] as String?) ?? '';
-    if (text.isNotEmpty) {
-      _aiBloc.add(SetAIText(text));
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final text = (args?['text'] as String?) ?? '';
+      if (text.isNotEmpty) {
+        _aiBloc.add(SetAIText(text));
+      }
+    });
   }
 
   @override

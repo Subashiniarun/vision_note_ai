@@ -6,11 +6,16 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/bloc/theme_bloc.dart';
 import 'core/router/app_router.dart';
 import 'core/widgets/placeholder_image.dart';
+import 'core/storage/hive_service.dart';
+import 'core/utils/logger.dart';
 
 final appRouter = AppRouter();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  VNALogger.configure();
+  final hive = await HiveService.initialize();
+  await hive.openBox('visionnote_settings');
   await di.configureDependencies();
   runApp(const VisionNoteAIApp());
 }

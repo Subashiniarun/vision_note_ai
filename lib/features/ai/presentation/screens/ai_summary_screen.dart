@@ -126,7 +126,7 @@ class _AISummaryScreenState extends State<AISummaryScreen> {
                 icon: Icons.translate,
                 label: 'Translate',
                 isLoading: isLoading,
-                onTap: () => _aiBloc.add(const TranslateText('es')),
+                onTap: () => _showTranslatePicker(context),
               ),
             ),
             const SizedBox(width: 8),
@@ -142,6 +142,27 @@ class _AISummaryScreenState extends State<AISummaryScreen> {
           ],
         ),
       ],
+    );
+  }
+
+  void _showTranslatePicker(BuildContext context) {
+    final languages = {
+      'en': 'English', 'es': 'Spanish', 'fr': 'French',
+      'de': 'German', 'it': 'Italian', 'pt': 'Portuguese',
+      'nl': 'Dutch', 'ru': 'Russian', 'ja': 'Japanese', 'ko': 'Korean', 'zh': 'Chinese',
+    };
+    showDialog(
+      context: context,
+      builder: (_) => SimpleDialog(
+        title: const Text('Translate to'),
+        children: languages.entries.map((e) => SimpleDialogOption(
+          onPressed: () {
+            Navigator.pop(context);
+            _aiBloc.add(TranslateText(e.key));
+          },
+          child: Text(e.value),
+        )).toList(),
+      ),
     );
   }
 

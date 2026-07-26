@@ -1,4 +1,3 @@
-import 'dart:convert';
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/error/exceptions.dart';
@@ -24,17 +23,23 @@ class GeminiClient {
 
     final url = Uri.parse(
       '${ApiConstants.geminiBaseUrl}/${model ?? ApiConstants.geminiDefaultModel}'
-      ':generateContent?key=$apiKey',
+      ':generateContent',
     );
 
     final response = await _apiClient.post(
       url,
+      headers: {'X-Goog-Api-Key': apiKey},
       body: {
+        'system_instruction': {
+          'parts': [
+            {'text': systemPrompt},
+          ],
+        },
         'contents': [
           {
             'role': 'user',
             'parts': [
-              {'text': '$systemPrompt\n\n$userPrompt'},
+              {'text': userPrompt},
             ],
           },
         ],

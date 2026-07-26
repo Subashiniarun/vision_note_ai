@@ -46,7 +46,11 @@ class _EnhancementScreenState extends State<EnhancementScreen> {
         body: BlocConsumer<ImageProcessBloc, ImageProcessState>(
           listener: (context, state) {
             if (state is EnhanceComplete) {
-              context.pushRoute(PageRouteInfo.named('OCRPreviewRoute', args: {'enhancedImage': state.enhanced}));
+              final croppedArgs = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+              context.pushRoute(PageRouteInfo.named('OCRPreviewRoute', args: {
+                'enhancedImage': state.enhanced,
+                'imagePath': croppedArgs?['imagePath'],
+              }));
             }
           },
           builder: (context, state) {

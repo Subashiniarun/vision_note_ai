@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
+import '../../features/scan/presentation/screens/scan_detail_screen.dart';
 import '../../features/scan/presentation/screens/home_screen.dart';
 import '../../features/camera/presentation/screens/camera_screen.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
@@ -255,6 +256,20 @@ class AppShell extends StatelessWidget {
   }
 }
 
+class ScanDetailRoute extends PageRouteInfo<void> {
+  const ScanDetailRoute({List<PageRouteInfo>? children})
+    : super(ScanDetailRoute.name, initialChildren: children);
+
+  static const String name = 'ScanDetailRoute';
+
+  static final PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const ScanDetailScreen();
+    },
+  );
+}
+
 class AppRouter extends RootStackRouter {
   AppRouter({super.navigatorKey});
 
@@ -279,5 +294,6 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: ChatRoute.page, path: '/chat'),
     AutoRoute(page: ExportRoute.page, path: '/export'),
     AutoRoute(page: AboutRoute.page, path: '/about'),
+    AutoRoute(page: ScanDetailRoute.page, path: '/scan/:scanId'),
   ];
 }

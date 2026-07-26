@@ -1,12 +1,15 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../bloc/ocr_bloc.dart';
 import '../../domain/entities/ocr_result.dart';
 import '../../../../core/di/injection.dart';
 import '../../../scan/domain/entities/scan.dart';
+import '../../../scan/domain/usecases/save_scan.dart';
 
 @RoutePage()
 class OCRPreviewScreen extends StatefulWidget {
@@ -19,6 +22,8 @@ class OCRPreviewScreen extends StatefulWidget {
 class _OCRPreviewScreenState extends State<OCRPreviewScreen> {
   late OCRBloc _ocrBloc;
   final _textController = TextEditingController();
+  Uint8List? _enhancedImage;
+  String? _imagePath;
 
   @override
   void initState() {
@@ -26,12 +31,41 @@ class _OCRPreviewScreenState extends State<OCRPreviewScreen> {
     _ocrBloc = getIt<OCRBloc>();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-      final enhancedImage = args?['enhancedImage'] as Uint8List?;
-      if (enhancedImage != null && enhancedImage.isNotEmpty) {
-        _ocrBloc.add(SetOCRImage(enhancedImage, 'en'));
+      _imagePath = args?['imagePath'] as String?;
+      _enhancedImage = args?['enhancedImage'] as Uint8List?;
+      if (_enhancedImage != null && _enhancedImage!.isNotEmpty) {
+        _ocrBloc.add(SetOCRImage(_enhancedImage!, 'en'));
         _ocrBloc.add(const ExtractTextRequest());
       }
     });
+  }
+
+  Future<Scan> _saveScan(String text) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final ts = DateTime.now().millisecondsSinceEpoch;
+
+    String? savedOriginalPath;
+    if (_imagePath != null && await File(_imagePath!).exists()) {
+      final dest = '${dir.path}/original_$ts.jpg';
+      await File(_imagePath!).copy(dest);
+      savedOriginalPath = dest;
+    }
+
+    String? savedEnhancedPath;
+    if (_enhancedImage != null && _enhancedImage!.isNotEmpty) {
+      final dest = '${dir.path}/enhanced_$ts.jpg';
+      await File(dest).writeAsBytes(_enhancedImage!);
+      savedEnhancedPath = dest;
+    }
+
+    final scan = Scan(
+      originalImagePath: savedOriginalPath ?? '',
+      enhancedImagePath: savedEnhancedPath,
+      ocrText: text,
+    );
+
+    final saveScan = getIt<SaveScan>();
+    return saveScan(scan);
   }
 
   @override
@@ -106,12 +140,10 @@ class _OCRPreviewScreenState extends State<OCRPreviewScreen> {
                 child: VNAButton(
                   label: 'AI Summary',
                   icon: Icons.auto_awesome,
-                  onPressed: () {
-                    final scan = Scan(
-                      originalImagePath: '',
-                      ocrText: displayText,
-                    );
-                    context.pushRoute(PageRouteInfo.named('AISummaryRoute', args: {'scan': scan, 'text': displayText}));
+                  onPressed: () async {
+                    final saved = await _saveScan(displayText);
+                    if (!context.mounted) return;
+                    context.pushRoute(PageRouteInfo.named('AISummaryRoute', args: {'scan': saved, 'text': displayText}));
                   },
                 ),
               ),
@@ -120,12 +152,10 @@ class _OCRPreviewScreenState extends State<OCRPreviewScreen> {
                 child: VNAButton(
                   label: 'Export',
                   icon: Icons.file_download,
-                  onPressed: () {
-                    final scan = Scan(
-                      originalImagePath: '',
-                      ocrText: displayText,
-                    );
-                    context.pushRoute(PageRouteInfo.named('ExportRoute', args: {'scan': scan}));
+                  onPressed: () async {
+                    final saved = await _saveScan(displayText);
+                    if (!context.mounted) return;
+                    context.pushRoute(PageRouteInfo.named('ExportRoute', args: {'scan': saved}));
                   },
                 ),
               ),

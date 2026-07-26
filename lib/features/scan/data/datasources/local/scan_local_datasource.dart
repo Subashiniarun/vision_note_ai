@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:injectable/injectable.dart';
 import '../../../../../core/database/app_database.dart';
 import '../../models/scan_mapper.dart';
@@ -86,7 +85,7 @@ class ScanLocalDataSource {
   }
 
   Stream<List<Scan>> watchRecentScans() {
-    return Stream.periodic(const Duration(seconds: 1), (_) {
+    return Stream.periodic(const Duration(seconds: 5), (_) {
       return getRecentScans(50);
     });
   }
