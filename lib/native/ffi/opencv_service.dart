@@ -64,6 +64,20 @@ class OpenCVService {
     }
   }
 
+  Uint8List? preprocessForHandwriting(Uint8List imageData, int width, int height) {
+    final ptr = _allocatePointer(imageData);
+    try {
+      final resultPtr = _bindings.preprocessForHandwriting(ptr, width, height, 4);
+      final base64 = resultPtr.toDartString();
+      _freePtr(ptr);
+      _freeStr(resultPtr);
+      return base64Decode(base64);
+    } catch (_) {
+      _freePtr(ptr);
+      return null;
+    }
+  }
+
   Uint8List? autoEnhance(Uint8List imageData, int width, int height) {
     final ptr = _allocatePointer(imageData);
     final resultPtr = _bindings.autoEnhance(ptr, width, height, 4);

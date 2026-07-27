@@ -13,9 +13,10 @@ class OCRInitial extends OCRState {
 class OCRImageReady extends OCRState {
   final Uint8List imageBytes;
   final String language;
-  const OCRImageReady(this.imageBytes, this.language);
+  final bool useCloudOCR;
+  const OCRImageReady(this.imageBytes, this.language, {this.useCloudOCR = false});
   @override
-  List<Object> get props => [imageBytes, language];
+  List<Object> get props => [imageBytes, language, useCloudOCR];
 }
 
 class OCRExtracting extends OCRState {

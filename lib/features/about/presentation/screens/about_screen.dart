@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_widgets.dart';
 
 @RoutePage()
@@ -11,75 +14,61 @@ class AboutScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('About')),
       body: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           children: [
             const Spacer(),
-            Icon(
-              Icons.document_scanner,
-              size: 80,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'VisionNote AI',
-              style: Theme.of(context).textTheme.headlineLarge,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Version 1.0.0',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Transform whiteboards, handwritten notes, and documents\n'
-              'into structured, AI-powered knowledge.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 32),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    _buildInfoRow(context, 'Developer', 'VisionNote Team'),
-                    const Divider(),
-                    _buildInfoRow(context, 'Architecture', 'Clean Architecture + BLoC'),
-                    const Divider(),
-                    _buildInfoRow(context, 'Image Processing', 'OpenCV via FFI'),
-                    const Divider(),
-                    _buildInfoRow(context, 'OCR', 'Google ML Kit / Tesseract'),
-                    const Divider(),
-                    _buildInfoRow(context, 'AI', 'Gemini / OpenAI (Pluggable)'),
-                  ],
-                ),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.xxl),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [AppColors.primary, AppColors.secondary]),
+                borderRadius: BorderRadius.circular(AppSpacing.xxl),
               ),
+              child: const Icon(Icons.document_scanner, size: 80, color: Colors.white),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text('VisionNote AI', style: AppTypography.headlineLg.copyWith(color: AppColors.onSurface)),
+            const SizedBox(height: AppSpacing.sm),
+            Text('Version 1.0.0', style: AppTypography.bodyLg.copyWith(color: AppColors.onSurfaceVariant)),
+            const SizedBox(height: AppSpacing.xxl),
+            Text(
+              'Transform whiteboards, handwritten notes, and documents\ninto structured, AI-powered knowledge.',
+              textAlign: TextAlign.center,
+              style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
+            ),
+            const SizedBox(height: AppSpacing.xxl),
+            VNACard(
+              title: 'Developer',
+              subtitle: 'VisionNote Team',
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            VNACard(
+              title: 'Architecture',
+              subtitle: 'Clean Architecture + BLoC',
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            VNACard(
+              title: 'Image Processing',
+              subtitle: 'OpenCV via FFI',
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            VNACard(
+              title: 'OCR',
+              subtitle: 'Google ML Kit / Tesseract',
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            VNACard(
+              title: 'AI',
+              subtitle: 'Gemini / OpenAI (Pluggable)',
             ),
             const Spacer(),
             Text(
-              '© 2026 VisionNote AI. All rights reserved.',
-              style: Theme.of(context).textTheme.bodySmall,
+              '\u00a9 2026 VisionNote AI. All rights reserved.',
+              style: AppTypography.labelMd.copyWith(color: AppColors.onSurfaceVariant),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xxl),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(BuildContext context, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: Theme.of(context).textTheme.bodyMedium),
-          Text(value,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  )),
-        ],
       ),
     );
   }

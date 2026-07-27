@@ -2,8 +2,11 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:auto_route/auto_route.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../bloc/image_process_bloc.dart';
 import '../../../../core/di/injection.dart';
@@ -68,9 +71,9 @@ class _CropEditorScreenState extends State<CropEditorScreen> {
           },
           builder: (context, state) {
             return switch (state) {
-              ImageProcessInitial() => const Center(child: Text('Loading image...')),
+              ImageProcessInitial() => Center(child: Text('Loading image...', style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant))),
               ImageLoaded(original: final img) => _buildEditor(context, img, state.corners),
-              CropProcessing() => const Center(child: CircularProgressIndicator()),
+              CropProcessing() => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
               ImageProcessError(message: final msg) => VNAErrorState(message: msg),
               _ => const SizedBox.shrink(),
             };
@@ -125,32 +128,191 @@ class _CropEditorScreenState extends State<CropEditorScreen> {
   }
 
   Widget _buildCropView(Uint8List image, List<Offset>? corners) {
-    final imgW = _imgSize!.width;
-    final imgH = _imgSize!.height;
-    final hasCorners = corners != null && corners.length == 4;
+    return _InteractiveCropOverlay(
+      image: image,
+      initialCorners: corners,
+      imgSize: _imgSize!,
+      onCornersUpdated: (newCorners) {
+        // We'd ideally update bloc here or just keep local state until confirmed
+        _bloc.add(UpdateCorners(newCorners));
+      },
+    );
+  }
+}
 
+class _InteractiveCropOverlay extends StatefulWidget {
+  final Uint8List image;
+  final List<Offset>? initialCorners;
+  final Size imgSize;
+  final ValueChanged<List<Offset>> onCornersUpdated;
+
+  const _InteractiveCropOverlay({
+    required this.image,
+    required this.initialCorners,
+    required this.imgSize,
+    required this.onCornersUpdated,
+  });
+
+  @override
+  State<_InteractiveCropOverlay> createState() => _InteractiveCropOverlayState();
+}
+
+class _InteractiveCropOverlayState extends State<_InteractiveCropOverlay> {
+  late List<Offset> _corners;
+  int? _activeCornerIndex;
+  Offset? _dragPosition;
+
+  @override
+  void initState() {
+    super.initState();
+    _corners = widget.initialCorners ?? [
+      const Offset(0, 0),
+      Offset(widget.imgSize.width, 0),
+      Offset(widget.imgSize.width, widget.imgSize.height),
+      Offset(0, widget.imgSize.height),
+    ];
+  }
+  
+  @override
+  void didUpdateWidget(covariant _InteractiveCropOverlay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialCorners != null && widget.initialCorners != oldWidget.initialCorners) {
+      setState(() => _corners = List.from(widget.initialCorners!));
+    }
+  }
+
+  void _onPanStart(DragStartDetails details, BoxConstraints constraints) {
+    final scale = math.min(constraints.maxWidth / widget.imgSize.width, constraints.maxHeight / widget.imgSize.height);
+    final renderW = widget.imgSize.width * scale;
+    final renderH = widget.imgSize.height * scale;
+    final offsetX = (constraints.maxWidth - renderW) / 2;
+    final offsetY = (constraints.maxHeight - renderH) / 2;
+
+    for (int i = 0; i < 4; i++) {
+      final cornerX = offsetX + _corners[i].dx * scale;
+      final cornerY = offsetY + _corners[i].dy * scale;
+      final distance = (Offset(cornerX, cornerY) - details.localPosition).distance;
+      if (distance < 40) {
+        _activeCornerIndex = i;
+        HapticFeedback.lightImpact();
+        setState(() => _dragPosition = details.localPosition);
+        break;
+      }
+    }
+  }
+
+  void _onPanUpdate(DragUpdateDetails details, BoxConstraints constraints) {
+    if (_activeCornerIndex == null) return;
+
+    final scale = math.min(constraints.maxWidth / widget.imgSize.width, constraints.maxHeight / widget.imgSize.height);
+    final renderW = widget.imgSize.width * scale;
+    final renderH = widget.imgSize.height * scale;
+    final offsetX = (constraints.maxWidth - renderW) / 2;
+    final offsetY = (constraints.maxHeight - renderH) / 2;
+
+    final localPos = details.localPosition;
+    double imgX = (localPos.dx - offsetX) / scale;
+    double imgY = (localPos.dy - offsetY) / scale;
+
+    imgX = imgX.clamp(0.0, widget.imgSize.width);
+    imgY = imgY.clamp(0.0, widget.imgSize.height);
+
+    setState(() {
+      _corners[_activeCornerIndex!] = Offset(imgX, imgY);
+      _dragPosition = localPos;
+    });
+    
+    // Throttle haptic feedback during drag could be added here
+  }
+
+  void _onPanEnd(DragEndDetails details) {
+    if (_activeCornerIndex != null) {
+      widget.onCornersUpdated(_corners);
+      setState(() {
+        _activeCornerIndex = null;
+        _dragPosition = null;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        return Stack(
-          children: [
-            Image.memory(
-              image,
-              fit: BoxFit.contain,
-              width: constraints.maxWidth,
-              height: constraints.maxHeight,
-            ),
-            if (hasCorners)
+        return GestureDetector(
+          onPanStart: (d) => _onPanStart(d, constraints),
+          onPanUpdate: (d) => _onPanUpdate(d, constraints),
+          onPanEnd: _onPanEnd,
+          child: Stack(
+            children: [
+              Image.memory(
+                widget.image,
+                fit: BoxFit.contain,
+                width: constraints.maxWidth,
+                height: constraints.maxHeight,
+              ),
               CustomPaint(
                 size: Size(constraints.maxWidth, constraints.maxHeight),
                 painter: _CropOverlayPainter(
-                  corners,
-                  imgW,
-                  imgH,
+                  _corners,
+                  widget.imgSize.width,
+                  widget.imgSize.height,
                   constraints.maxWidth,
                   constraints.maxHeight,
                 ),
               ),
-          ],
+              if (_dragPosition != null)
+                Positioned(
+                  left: _dragPosition!.dx - 40,
+                  top: _dragPosition!.dy - 100,
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.primary, width: 3),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 10,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: ClipOval(
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            left: -(_dragPosition!.dx * 1.5) + 40,
+                            top: -(_dragPosition!.dy * 1.5) + 40,
+                            child: Transform.scale(
+                              scale: 1.5,
+                              alignment: Alignment.topLeft,
+                              child: Image.memory(
+                                widget.image,
+                                fit: BoxFit.contain,
+                                width: constraints.maxWidth,
+                                height: constraints.maxHeight,
+                              ),
+                            ),
+                          ),
+                          Center(
+                            child: Container(
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(
+                                color: AppColors.primary,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         );
       },
     );
@@ -187,22 +349,25 @@ class _CropOverlayPainter extends CustomPainter {
     path.close();
 
     canvas.drawPath(path, Paint()
-      ..color = Colors.blue.withOpacity(0.12)
+      ..color = AppColors.primary.withOpacity(0.12)
       ..style = PaintingStyle.fill);
 
     canvas.drawPath(path, Paint()
-      ..color = Colors.blue
+      ..color = AppColors.primary
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2);
+      ..strokeWidth = 3);
 
     for (int i = 0; i < 4; i++) {
       final x = offsetX + corners[i].dx * scale;
       final y = offsetY + corners[i].dy * scale;
-      canvas.drawCircle(Offset(x, y), 6, Paint()..color = Colors.white);
-      canvas.drawCircle(Offset(x, y), 6, Paint()
-        ..color = Colors.blue
+      
+      // Outer glow for corner
+      canvas.drawCircle(Offset(x, y), 12, Paint()..color = AppColors.primary.withOpacity(0.3)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
+      canvas.drawCircle(Offset(x, y), 8, Paint()..color = Colors.white);
+      canvas.drawCircle(Offset(x, y), 8, Paint()
+        ..color = AppColors.primary
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2);
+        ..strokeWidth = 3);
     }
   }
 

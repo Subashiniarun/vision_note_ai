@@ -4,7 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:path_provider/path_provider.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/widgets/app_widgets.dart';
+import '../widgets/premium_slider.dart';
 import '../bloc/image_process_bloc.dart';
 import '../../../../core/di/injection.dart';
 
@@ -18,6 +22,9 @@ class EnhancementScreen extends StatefulWidget {
 
 class _EnhancementScreenState extends State<EnhancementScreen> {
   late ImageProcessBloc _bloc;
+  bool _isHandwriting = false;
+  double _brightness = 0.5;
+  double _contrast = 0.5;
 
   @override
   void initState() {
@@ -50,20 +57,21 @@ class _EnhancementScreenState extends State<EnhancementScreen> {
               context.pushRoute(PageRouteInfo.named('OCRPreviewRoute', args: {
                 'enhancedImage': state.enhanced,
                 'imagePath': croppedArgs?['imagePath'],
+                'isHandwriting': _isHandwriting,
               }));
             }
           },
           builder: (context, state) {
             return switch (state) {
-              EnhanceReady(current: final img) =>
-                _buildEnhanceView(context, img),
+              EnhanceReady(current: final img, isHandwriting: final hw) =>
+                _buildEnhanceView(context, img, isHandwriting: hw),
               ImageLoaded(original: final img) =>
                 _buildEnhanceView(context, img),
               EnhanceProcessing() =>
-                const Center(child: CircularProgressIndicator()),
+                const Center(child: CircularProgressIndicator(color: AppColors.primary)),
               ImageProcessError(message: final msg) =>
                 VNAErrorState(message: msg),
-              _ => const Center(child: Text('Processing...')),
+              _ => Center(child: Text('Processing...', style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant))),
             };
           },
         ),
@@ -71,14 +79,14 @@ class _EnhancementScreenState extends State<EnhancementScreen> {
     );
   }
 
-  Widget _buildEnhanceView(BuildContext context, Uint8List image) {
+  Widget _buildEnhanceView(BuildContext context, Uint8List image, {bool isHandwriting = false}) {
     return Column(
       children: [
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               child: Image.memory(image, fit: BoxFit.contain),
             ),
           ),
@@ -87,6 +95,40 @@ class _EnhancementScreenState extends State<EnhancementScreen> {
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
           child: Column(
             children: [
+              SwitchListTile(
+                title: const Text('Handwriting Mode'),
+                subtitle: const Text('Use adaptive thresholding for handwritten text'),
+                value: isHandwriting,
+                onChanged: (v) {
+                  setState(() => _isHandwriting = v);
+                  if (v) {
+                    _bloc.add(const HandwritingPreprocess());
+                  } else {
+                    _bloc.add(const AutoEnhance());
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+              PremiumSlider(
+                label: 'Brightness',
+                icon: Icons.light_mode_outlined,
+                value: _brightness,
+                onChanged: (val) {
+                  setState(() => _brightness = val);
+                  // Optional: Debounce and add event to bloc
+                },
+              ),
+              const SizedBox(height: 12),
+              PremiumSlider(
+                label: 'Contrast',
+                icon: Icons.contrast,
+                value: _contrast,
+                onChanged: (val) {
+                  setState(() => _contrast = val);
+                  // Optional: Debounce and add event to bloc
+                },
+              ),
+              const SizedBox(height: 24),
               VNAButton(
                 label: 'Auto Enhance',
                 icon: Icons.auto_awesome,

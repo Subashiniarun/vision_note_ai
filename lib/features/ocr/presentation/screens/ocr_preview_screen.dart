@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:path_provider/path_provider.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../bloc/ocr_bloc.dart';
 import '../../domain/entities/ocr_result.dart';
@@ -33,8 +36,9 @@ class _OCRPreviewScreenState extends State<OCRPreviewScreen> {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       _imagePath = args?['imagePath'] as String?;
       _enhancedImage = args?['enhancedImage'] as Uint8List?;
+      final isHandwriting = args?['isHandwriting'] as bool? ?? false;
       if (_enhancedImage != null && _enhancedImage!.isNotEmpty) {
-        _ocrBloc.add(SetOCRImage(_enhancedImage!, 'en'));
+        _ocrBloc.add(SetOCRImage(_enhancedImage!, 'en', useCloudOCR: isHandwriting));
         _ocrBloc.add(const ExtractTextRequest());
       }
     });
@@ -89,17 +93,20 @@ class _OCRPreviewScreenState extends State<OCRPreviewScreen> {
           builder: (context, state) {
             return switch (state) {
               OCRInitial() || OCRImageReady() =>
-                const Center(child: Text('Ready to extract...')),
-              OCRExtracting() => const Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('Extracting text...'),
-                    ],
-                  ),
+                Center(child: Text('Ready to extract...', style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant))),
+              OCRExtracting() => Padding(
+                padding: const EdgeInsets.all(AppSpacing.xxl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Extracting Text...', style: AppTypography.headlineSm.copyWith(color: AppColors.primary)),
+                    const SizedBox(height: AppSpacing.xl),
+                    const SkeletonTextLines(lines: 5),
+                    const SizedBox(height: AppSpacing.xl),
+                    const SkeletonTextLines(lines: 4),
+                  ],
                 ),
+              ),
               OCRComplete(result: final r) => _buildPreview(context, r),
               OCREditing(text: final t) => _buildPreview(context, null, text: t),
               OCRError(message: final msg) =>
@@ -125,7 +132,6 @@ class _OCRPreviewScreenState extends State<OCRPreviewScreen> {
               expands: true,
               textAlignVertical: TextAlignVertical.top,
               decoration: const InputDecoration(
-                border: OutlineInputBorder(),
                 hintText: 'Extracted text appears here...',
               ),
               onChanged: (t) => _ocrBloc.add(EditText(t)),

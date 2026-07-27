@@ -34,3 +34,10 @@ class DisposeCamera extends CameraEvent {
   @override
   List<Object> get props => [];
 }
+
+class ImportFromGallery extends CameraEvent {
+  final Uint8List imageBytes;
+  const ImportFromGallery({required this.imageBytes});
+  @override
+  List<Object> get props => [imageBytes];
+}

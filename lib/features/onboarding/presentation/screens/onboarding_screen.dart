@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/widgets/app_widgets.dart';
 
 @RoutePage()
@@ -16,22 +20,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final _pages = const [
     _OnboardingPage(
-      icon: Icons.document_scanner,
-      title: 'Scan Any Document',
-      description:
-          'Capture whiteboards, handwritten notes, printed documents, receipts, and books with ease.',
+      imageAsset: 'assets/screenshots/02-onboarding-1.png',
+      title: 'Capture Any Document',
+      description: 'Whiteboards, handwritten notes, receipts, books — frame and capture in one tap',
     ),
     _OnboardingPage(
-      icon: Icons.auto_fix_high,
+      imageAsset: 'assets/screenshots/03-onboarding-2.png',
       title: 'AI-Powered Enhancement',
-      description:
-          'Auto-detect edges, correct perspective, remove shadows, and enhance readability.',
+      description: 'Auto-detect edges, correct perspective, remove shadows, and enhance readability instantly.',
     ),
     _OnboardingPage(
-      icon: Icons.auto_awesome,
+      imageAsset: 'assets/screenshots/04-onboarding-3.png',
       title: 'Extract & Export',
-      description:
-          'Extract text with offline OCR, generate AI summaries, and export to Markdown, PDF, or JSON.',
+      description: 'Extract text with offline OCR, generate AI summaries, and export to Markdown or PDF.',
+    ),
+    _OnboardingPage(
+      imageAsset: 'assets/screenshots/05-onboarding-4.png',
+      title: 'Batch Scan & Organize',
+      description: 'Scan multiple pages at once, group by topic, and keep your notes organized by subject.',
     ),
   ];
 
@@ -43,15 +49,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLastPage = _currentPage == _pages.length - 1;
     return Scaffold(
+      backgroundColor: AppColors.surface,
       body: SafeArea(
         child: Column(
           children: [
             Align(
               alignment: Alignment.topRight,
-              child: TextButton(
-                onPressed: () => context.replaceRoute(PageRouteInfo.named('HomeRoute')),
-                child: const Text('Skip'),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                child: TextButton(
+                  onPressed: () => context.replaceRoute(PageRouteInfo.named('HomeRoute')),
+                  child: Text(
+                    'Skip',
+                    style: AppTypography.bodyMd.copyWith(
+                      color: AppColors.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
               ),
             ),
             Expanded(
@@ -62,44 +79,40 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 itemBuilder: (_, i) => _pages[i],
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                _pages.length,
-                (i) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: _currentPage == i ? 24 : 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: _currentPage == i
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).colorScheme.outline,
-                    borderRadius: BorderRadius.circular(4),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  _pages.length,
+                  (i) => AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOutCubic,
+                    margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                    width: _currentPage == i ? 32 : 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: _currentPage == i ? AppColors.primary : AppColors.outlineVariant.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(AppRadius.full),
+                    ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 32),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl).copyWith(bottom: AppSpacing.xxxxl),
               child: VNAButton(
-                label: _currentPage == _pages.length - 1
-                    ? 'Get Started'
-                    : 'Next',
+                label: isLastPage ? 'Get Started' : 'Next',
+                trailingIcon: isLastPage ? null : Icons.arrow_forward,
                 onPressed: () {
-                  if (_currentPage == _pages.length - 1) {
+                  if (isLastPage) {
                     context.replaceRoute(PageRouteInfo.named('HomeRoute'));
                   } else {
-                    _controller.nextPage(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    );
+                    _controller.nextPage(duration: const Duration(milliseconds: 400), curve: Curves.easeOutCubic);
                   }
                 },
               ),
             ),
-            const SizedBox(height: 48),
           ],
         ),
       ),
@@ -108,12 +121,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 }
 
 class _OnboardingPage extends StatelessWidget {
-  final IconData icon;
+  final String imageAsset;
   final String title;
   final String description;
 
   const _OnboardingPage({
-    required this.icon,
+    required this.imageAsset,
     required this.title,
     required this.description,
   });
@@ -121,29 +134,64 @@ class _OnboardingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Spacer(),
-          Icon(
-            icon,
-            size: 120,
-            color: Theme.of(context).colorScheme.primary,
+          Expanded(
+            flex: 6,
+            child: Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 320, maxHeight: 600),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(color: AppColors.outlineVariant.withOpacity(0.3), width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.08),
+                      blurRadius: 40,
+                      spreadRadius: 10,
+                      offset: const Offset(0, 20),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(31),
+                  child: Image.asset(
+                    imageAsset,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+            ),
           ),
-          const SizedBox(height: 32),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.headlineMedium,
-            textAlign: TextAlign.center,
+          Expanded(
+            flex: 2,
+            child: Column(
+              children: [
+                const SizedBox(height: AppSpacing.xxl),
+                Text(
+                  title,
+                  style: AppTypography.headlineLgMobile.copyWith(
+                    color: AppColors.onSurface,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  child: Text(
+                    description,
+                    style: AppTypography.bodyLg.copyWith(
+                      color: AppColors.onSurfaceVariant,
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 16),
-          Text(
-            description,
-            style: Theme.of(context).textTheme.bodyLarge,
-            textAlign: TextAlign.center,
-          ),
-          const Spacer(),
         ],
       ),
     );

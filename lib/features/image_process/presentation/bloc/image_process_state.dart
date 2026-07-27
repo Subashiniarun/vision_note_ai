@@ -40,9 +40,10 @@ class EnhanceProcessing extends ImageProcessState {
 class EnhanceReady extends ImageProcessState {
   final Uint8List current;
   final Uint8List original;
-  const EnhanceReady(this.current, this.original);
+  final bool isHandwriting;
+  const EnhanceReady(this.current, this.original, {this.isHandwriting = false});
   @override
-  List<Object> get props => [current, original];
+  List<Object> get props => [current, original, isHandwriting];
 }
 
 class EnhanceComplete extends ImageProcessState {

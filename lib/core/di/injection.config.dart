@@ -34,6 +34,7 @@ import '../../features/image_process/domain/repositories/i_image_processor.dart'
 import '../../features/image_process/presentation/bloc/image_process_bloc.dart'
     as _i836;
 import '../../features/ocr/data/datasources/local/ocr_engine.dart' as _i775;
+import '../../features/ocr/data/datasources/remote/cloud_ocr_engine.dart' as _i218;
 import '../../features/ocr/data/repositories/ocr_repository.dart' as _i140;
 import '../../features/ocr/domain/repositories/i_ocr_repository.dart' as _i315;
 import '../../features/ocr/presentation/bloc/ocr_bloc.dart' as _i300;
@@ -111,8 +112,16 @@ Future<_i174.GetIt> $initGetIt(
   gh.factory<_i836.ImageProcessBloc>(
     () => _i836.ImageProcessBloc(gh<_i274.IImageProcessor>()),
   );
+  gh.factory<_i218.CloudOCREngine>(
+    () => _i218.CloudOCREngine(
+      gh<_i734.GeminiClient>(),
+      gh<_i258.OpenAIClient>(),
+      gh<_i657.ISettingsRepository>(),
+      gh<_i491.ConnectivityService>(),
+    ),
+  );
   gh.factory<_i315.IOCRRepository>(
-    () => _i140.OCRRepository(gh<_i775.OCREngine>()),
+    () => _i140.OCRRepository(gh<_i775.OCREngine>(), gh<_i218.CloudOCREngine>()),
   );
   gh.lazySingleton<_i734.GeminiClient>(
     () => aiModule.geminiClient(

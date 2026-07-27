@@ -17,6 +17,7 @@ class ImageProcessBloc extends Bloc<ImageProcessEvent, ImageProcessState> {
     on<LoadImage>(_onLoadImage);
     on<AutoDetectCorners>(_onAutoDetectCorners);
     on<UpdateCorner>(_onUpdateCorner);
+    on<UpdateCorners>(_onUpdateCorners);
     on<ApplyCrop>(_onApplyCrop);
     on<AutoEnhance>(_onAutoEnhance);
     on<UpdateBrightness>(_onUpdateBrightness);
@@ -24,6 +25,7 @@ class ImageProcessBloc extends Bloc<ImageProcessEvent, ImageProcessState> {
     on<UpdateSaturation>(_onUpdateSaturation);
     on<ApplyEnhancement>(_onApplyEnhancement);
     on<ResetEnhancement>(_onResetEnhancement);
+    on<HandwritingPreprocess>(_onHandwritingPreprocess);
   }
 
   Future<void> _onLoadImage(
@@ -64,6 +66,15 @@ class ImageProcessBloc extends Bloc<ImageProcessEvent, ImageProcessState> {
     emit(ImageLoaded(current.original, corners: corners.cast()));
   }
 
+  void _onUpdateCorners(
+    UpdateCorners event,
+    Emitter<ImageProcessState> emit,
+  ) {
+    final current = state;
+    if (current is! ImageLoaded) return;
+    emit(ImageLoaded(current.original, corners: event.corners));
+  }
+
   Future<void> _onApplyCrop(
     ApplyCrop event,
     Emitter<ImageProcessState> emit,
@@ -87,12 +98,23 @@ class ImageProcessBloc extends Bloc<ImageProcessEvent, ImageProcessState> {
     Emitter<ImageProcessState> emit,
   ) async {
     final current = state;
-    if (current is! ImageLoaded && current is! CropReady) return;
+    if (current is! ImageLoaded && current is! CropReady && current is! EnhanceReady) return;
     emit(EnhanceProcessing());
     try {
-      final image = current is ImageLoaded ? current.original : (current as CropReady).cropped;
+      late final Uint8List image;
+      late final Uint8List original;
+      if (current is EnhanceReady) {
+        image = current.original;
+        original = current.original;
+      } else if (current is CropReady) {
+        image = current.cropped;
+        original = current.cropped;
+      } else {
+        image = (current as ImageLoaded).original;
+        original = image;
+      }
       final enhanced = await _imageProcessor.autoEnhance(image);
-      emit(EnhanceReady(enhanced, image));
+      emit(EnhanceReady(enhanced, original));
     } catch (e) {
       emit(ImageProcessError(e.toString()));
     }
@@ -156,5 +178,22 @@ class ImageProcessBloc extends Bloc<ImageProcessEvent, ImageProcessState> {
     final current = state;
     if (current is! EnhanceReady) return;
     emit(EnhanceReady(current.original, current.original));
+  }
+
+  Future<void> _onHandwritingPreprocess(
+    HandwritingPreprocess event,
+    Emitter<ImageProcessState> emit,
+  ) async {
+    final current = state;
+    if (current is! EnhanceReady && current is! ImageLoaded) return;
+    emit(EnhanceProcessing());
+    try {
+      final image = current is EnhanceReady ? current.current : (current as ImageLoaded).original;
+      final original = current is EnhanceReady ? current.original : image;
+      final processed = await _imageProcessor.preprocessForHandwriting(image);
+      emit(EnhanceReady(processed, original, isHandwriting: true));
+    } catch (e) {
+      emit(ImageProcessError(e.toString()));
+    }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
 import '../../features/scan/presentation/screens/scan_detail_screen.dart';
+import '../../features/scan/presentation/screens/batch_screen.dart';
 import '../../features/scan/presentation/screens/home_screen.dart';
 import '../../features/camera/presentation/screens/camera_screen.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
@@ -14,6 +15,8 @@ import '../../features/ai/presentation/screens/chat_screen.dart';
 import '../../features/export/presentation/screens/export_screen.dart';
 import '../../features/about/presentation/screens/about_screen.dart';
 import '../../core/widgets/splash_screen.dart';
+import '../../core/widgets/vna_bottom_nav.dart';
+import '../theme/app_transitions.dart';
 
 class SplashRoute extends PageRouteInfo<void> {
   const SplashRoute({List<PageRouteInfo>? children})
@@ -23,9 +26,7 @@ class SplashRoute extends PageRouteInfo<void> {
 
   static final PageInfo page = PageInfo(
     name,
-    builder: (data) {
-      return const SplashScreen();
-    },
+    builder: (data) => const SplashScreen(),
   );
 }
 
@@ -37,9 +38,7 @@ class OnboardingRoute extends PageRouteInfo<void> {
 
   static final PageInfo page = PageInfo(
     name,
-    builder: (data) {
-      return const OnboardingScreen();
-    },
+    builder: (data) => const OnboardingScreen(),
   );
 }
 
@@ -51,9 +50,7 @@ class AppShellRoute extends PageRouteInfo<void> {
 
   static final PageInfo page = PageInfo(
     name,
-    builder: (data) {
-      return const AppShell();
-    },
+    builder: (data) => const AppShell(),
   );
 }
 
@@ -65,9 +62,7 @@ class HomeRoute extends PageRouteInfo<void> {
 
   static final PageInfo page = PageInfo(
     name,
-    builder: (data) {
-      return const HomeScreen();
-    },
+    builder: (data) => const HomeScreen(),
   );
 }
 
@@ -79,9 +74,7 @@ class CameraRoute extends PageRouteInfo<void> {
 
   static final PageInfo page = PageInfo(
     name,
-    builder: (data) {
-      return const CameraScreen();
-    },
+    builder: (data) => const CameraScreen(),
   );
 }
 
@@ -93,9 +86,7 @@ class HistoryRoute extends PageRouteInfo<void> {
 
   static final PageInfo page = PageInfo(
     name,
-    builder: (data) {
-      return const HistoryScreen();
-    },
+    builder: (data) => const HistoryScreen(),
   );
 }
 
@@ -107,9 +98,7 @@ class SettingsRoute extends PageRouteInfo<void> {
 
   static final PageInfo page = PageInfo(
     name,
-    builder: (data) {
-      return const SettingsScreen();
-    },
+    builder: (data) => const SettingsScreen(),
   );
 }
 
@@ -121,9 +110,7 @@ class CropEditorRoute extends PageRouteInfo<void> {
 
   static final PageInfo page = PageInfo(
     name,
-    builder: (data) {
-      return const CropEditorScreen();
-    },
+    builder: (data) => const CropEditorScreen(),
   );
 }
 
@@ -135,9 +122,7 @@ class EnhancementRoute extends PageRouteInfo<void> {
 
   static final PageInfo page = PageInfo(
     name,
-    builder: (data) {
-      return const EnhancementScreen();
-    },
+    builder: (data) => const EnhancementScreen(),
   );
 }
 
@@ -149,9 +134,7 @@ class OCRPreviewRoute extends PageRouteInfo<void> {
 
   static final PageInfo page = PageInfo(
     name,
-    builder: (data) {
-      return const OCRPreviewScreen();
-    },
+    builder: (data) => const OCRPreviewScreen(),
   );
 }
 
@@ -163,9 +146,7 @@ class AISummaryRoute extends PageRouteInfo<void> {
 
   static final PageInfo page = PageInfo(
     name,
-    builder: (data) {
-      return const AISummaryScreen();
-    },
+    builder: (data) => const AISummaryScreen(),
   );
 }
 
@@ -177,9 +158,7 @@ class ChatRoute extends PageRouteInfo<void> {
 
   static final PageInfo page = PageInfo(
     name,
-    builder: (data) {
-      return const ChatScreen();
-    },
+    builder: (data) => const ChatScreen(),
   );
 }
 
@@ -191,9 +170,7 @@ class ExportRoute extends PageRouteInfo<void> {
 
   static final PageInfo page = PageInfo(
     name,
-    builder: (data) {
-      return const ExportScreen();
-    },
+    builder: (data) => const ExportScreen(),
   );
 }
 
@@ -205,9 +182,7 @@ class AboutRoute extends PageRouteInfo<void> {
 
   static final PageInfo page = PageInfo(
     name,
-    builder: (data) {
-      return const AboutScreen();
-    },
+    builder: (data) => const AboutScreen(),
   );
 }
 
@@ -225,35 +200,26 @@ class AppShell extends StatelessWidget {
         SettingsRoute(),
       ],
       bottomNavigationBuilder: (_, tabsRouter) {
-        return NavigationBar(
+        return VNABottomNav(
           selectedIndex: tabsRouter.activeIndex,
           onDestinationSelected: tabsRouter.setActiveIndex,
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.camera_alt_outlined),
-              selectedIcon: Icon(Icons.camera_alt),
-              label: 'Scan',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.history_outlined),
-              selectedIcon: Icon(Icons.history),
-              label: 'History',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings),
-              label: 'Settings',
-            ),
-          ],
         );
       },
+      animationDuration: const Duration(milliseconds: 250),
     );
   }
+}
+
+class BatchRoute extends PageRouteInfo<void> {
+  const BatchRoute({List<PageRouteInfo>? children})
+    : super(BatchRoute.name, initialChildren: children);
+
+  static const String name = 'BatchRoute';
+
+  static final PageInfo page = PageInfo(
+    name,
+    builder: (data) => const BatchScreen(),
+  );
 }
 
 class ScanDetailRoute extends PageRouteInfo<void> {
@@ -264,9 +230,7 @@ class ScanDetailRoute extends PageRouteInfo<void> {
 
   static final PageInfo page = PageInfo(
     name,
-    builder: (data) {
-      return const ScanDetailScreen();
-    },
+    builder: (data) => const ScanDetailScreen(),
   );
 }
 
@@ -276,10 +240,17 @@ class AppRouter extends RootStackRouter {
   @override
   List<AutoRoute> get routes => [
     AutoRoute(page: SplashRoute.page, path: '/', initial: true),
-    AutoRoute(page: OnboardingRoute.page, path: '/onboarding'),
-    AutoRoute(
+    CustomRoute(
+      page: OnboardingRoute.page,
+      path: '/onboarding',
+      transitionsBuilder: AppTransitions.slideRight,
+      duration: const Duration(milliseconds: 400),
+    ),
+    CustomRoute(
       page: AppShellRoute.page,
       path: '/main',
+      transitionsBuilder: AppTransitions.fadeThrough,
+      duration: const Duration(milliseconds: 350),
       children: [
         AutoRoute(page: HomeRoute.page, path: 'home', initial: true),
         AutoRoute(page: CameraRoute.page, path: 'camera'),
@@ -287,13 +258,59 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: SettingsRoute.page, path: 'settings'),
       ],
     ),
-    AutoRoute(page: CropEditorRoute.page, path: '/crop'),
-    AutoRoute(page: EnhancementRoute.page, path: '/enhance'),
-    AutoRoute(page: OCRPreviewRoute.page, path: '/ocr-preview'),
-    AutoRoute(page: AISummaryRoute.page, path: '/ai-summary'),
-    AutoRoute(page: ChatRoute.page, path: '/chat'),
-    AutoRoute(page: ExportRoute.page, path: '/export'),
-    AutoRoute(page: AboutRoute.page, path: '/about'),
-    AutoRoute(page: ScanDetailRoute.page, path: '/scan/:scanId'),
+    CustomRoute(
+      page: CropEditorRoute.page,
+      path: '/crop',
+      transitionsBuilder: AppTransitions.slideRight,
+      duration: const Duration(milliseconds: 300),
+    ),
+    CustomRoute(
+      page: EnhancementRoute.page,
+      path: '/enhance',
+      transitionsBuilder: AppTransitions.slideRight,
+      duration: const Duration(milliseconds: 300),
+    ),
+    CustomRoute(
+      page: OCRPreviewRoute.page,
+      path: '/ocr-preview',
+      transitionsBuilder: AppTransitions.slideRight,
+      duration: const Duration(milliseconds: 300),
+    ),
+    CustomRoute(
+      page: AISummaryRoute.page,
+      path: '/ai-summary',
+      transitionsBuilder: AppTransitions.slideBottom,
+      duration: const Duration(milliseconds: 350),
+    ),
+    CustomRoute(
+      page: ChatRoute.page,
+      path: '/chat',
+      transitionsBuilder: AppTransitions.slideBottom,
+      duration: const Duration(milliseconds: 350),
+    ),
+    CustomRoute(
+      page: ExportRoute.page,
+      path: '/export',
+      transitionsBuilder: AppTransitions.slideBottom,
+      duration: const Duration(milliseconds: 300),
+    ),
+    CustomRoute(
+      page: AboutRoute.page,
+      path: '/about',
+      transitionsBuilder: AppTransitions.fadeThrough,
+      duration: const Duration(milliseconds: 250),
+    ),
+    CustomRoute(
+      page: BatchRoute.page,
+      path: '/batch',
+      transitionsBuilder: AppTransitions.slideBottom,
+      duration: const Duration(milliseconds: 300),
+    ),
+    CustomRoute(
+      page: ScanDetailRoute.page,
+      path: '/scan/:scanId',
+      transitionsBuilder: AppTransitions.slideRight,
+      duration: const Duration(milliseconds: 300),
+    ),
   ];
 }

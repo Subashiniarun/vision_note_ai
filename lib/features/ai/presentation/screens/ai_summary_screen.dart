@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:auto_route/auto_route.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/widgets/app_widgets.dart';
 import '../bloc/ai_bloc.dart';
 import '../../../../core/di/injection.dart';
 
@@ -54,12 +60,12 @@ class _AISummaryScreenState extends State<AISummaryScreen> {
           },
           builder: (context, state) {
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _buildActionButtons(context, state),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xxl),
                   _buildContent(state),
                 ],
               ),
@@ -76,69 +82,21 @@ class _AISummaryScreenState extends State<AISummaryScreen> {
       children: [
         Row(
           children: [
-            Expanded(
-              child: _buildAICard(
-                context,
-                icon: Icons.summarize,
-                label: 'Summary',
-                isLoading: isLoading,
-                onTap: () => _aiBloc.add(const GenerateSummary()),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildAICard(
-                context,
-                icon: Icons.checklist,
-                label: 'Actions',
-                isLoading: isLoading,
-                onTap: () => _aiBloc.add(const GenerateActionItems()),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildAICard(
-                context,
-                icon: Icons.style,
-                label: 'Flashcards',
-                isLoading: isLoading,
-                onTap: () => _aiBloc.add(const GenerateFlashcards()),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildAICard(
-                context,
-                icon: Icons.account_tree,
-                label: 'Mind Map',
-                isLoading: isLoading,
-                onTap: () => _aiBloc.add(const GenerateMindMap()),
-              ),
-            ),
+            Expanded(child: _buildAICard(context, Icons.summarize, 'Summary', isLoading, () => _aiBloc.add(const GenerateSummary()))),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(child: _buildAICard(context, Icons.checklist, 'Actions', isLoading, () => _aiBloc.add(const GenerateActionItems()))),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(child: _buildAICard(context, Icons.style, 'Flashcards', isLoading, () => _aiBloc.add(const GenerateFlashcards()))),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(child: _buildAICard(context, Icons.account_tree, 'Mind Map', isLoading, () => _aiBloc.add(const GenerateMindMap()))),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Row(
           children: [
-            Expanded(
-              child: _buildAICard(
-                context,
-                icon: Icons.translate,
-                label: 'Translate',
-                isLoading: isLoading,
-                onTap: () => _showTranslatePicker(context),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildAICard(
-                context,
-                icon: Icons.spellcheck,
-                label: 'Fix Grammar',
-                isLoading: isLoading,
-                onTap: () => _aiBloc.add(const FixGrammar()),
-              ),
-            ),
+            Expanded(child: _buildAICard(context, Icons.translate, 'Translate', isLoading, () => _showTranslatePicker(context))),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(child: _buildAICard(context, Icons.spellcheck, 'Fix Grammar', isLoading, () => _aiBloc.add(const FixGrammar()))),
           ],
         ),
       ],
@@ -153,41 +111,45 @@ class _AISummaryScreenState extends State<AISummaryScreen> {
     };
     showDialog(
       context: context,
-      builder: (_) => SimpleDialog(
+      builder: (_) => AlertDialog(
         title: const Text('Translate to'),
-        children: languages.entries.map((e) => SimpleDialogOption(
-          onPressed: () {
-            Navigator.pop(context);
-            _aiBloc.add(TranslateText(e.key));
-          },
-          child: Text(e.value),
-        )).toList(),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: languages.entries.map((e) => ListTile(
+            title: Text(e.value),
+            onTap: () {
+              Navigator.pop(context);
+              _aiBloc.add(TranslateText(e.key));
+            },
+          )).toList(),
+        ),
       ),
     );
   }
 
   Widget _buildAICard(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required bool isLoading,
-    required VoidCallback onTap,
-  }) {
-    return Card(
+    BuildContext context,
+    IconData icon,
+    String label,
+    bool isLoading,
+    VoidCallback onTap,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg, horizontal: AppSpacing.sm),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        color: AppColors.surface,
+        border: Border.all(color: AppColors.outlineVariant),
+      ),
       child: InkWell(
         onTap: isLoading ? null : onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-          child: Column(
-            children: [
-              Icon(icon, size: 28,
-                  color: Theme.of(context).colorScheme.primary),
-              const SizedBox(height: 4),
-              Text(label,
-                  style: Theme.of(context).textTheme.labelSmall),
-            ],
-          ),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        child: Column(
+          children: [
+            Icon(icon, size: 28, color: AppColors.primary),
+            const SizedBox(height: AppSpacing.xs),
+            Text(label, style: AppTypography.labelMd.copyWith(color: AppColors.onSurfaceVariant), textAlign: TextAlign.center),
+          ],
         ),
       ),
     );
@@ -196,69 +158,124 @@ class _AISummaryScreenState extends State<AISummaryScreen> {
   Widget _buildContent(AIState state) {
     return switch (state) {
       AILoading(message: final msg) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text(msg),
+            Text(msg, style: AppTypography.headlineSm.copyWith(color: AppColors.primary)),
+            const SizedBox(height: AppSpacing.xl),
+            const SkeletonTextLines(lines: 4),
           ],
         ),
       AISummaryReady(summary: final s) => _buildSection(
           'Summary',
-          Text(s.summary, style: const TextStyle(fontSize: 16)),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [AppColors.primary, AppColors.secondary]),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: MarkdownBody(
+              data: s.summary,
+              styleSheet: MarkdownStyleSheet(
+                p: AppTypography.bodyMd.copyWith(color: Colors.white),
+              ),
+            ),
+          ),
         ),
       AIActionItemsReady(items: final items) => _buildSection(
           'Action Items',
           Column(
-            children: items
-                .map((i) => ListTile(
-                      leading: Icon(
-                        i.priority == 'High'
-                            ? Icons.arrow_upward
-                            : Icons.remove,
-                        color: i.priority == 'High'
-                            ? Colors.red
-                            : Colors.orange,
-                      ),
-                      title: Text(i.task),
-                      subtitle: Text(i.assignee ?? 'Unassigned'),
-                    ))
-                .toList(),
+            children: items.map((i) => Container(
+              margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    i.priority == 'High' ? Icons.arrow_upward : Icons.remove,
+                    color: i.priority == 'High' ? AppColors.error : const Color(0xFFF59E0B),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(i.task, style: AppTypography.bodyMd.copyWith(color: AppColors.onSurface)),
+                        if (i.assignee != null)
+                          Text(i.assignee!, style: AppTypography.labelMd.copyWith(color: AppColors.onSurfaceVariant)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            )).toList(),
           ),
         ),
       AIFlashcardsReady(flashcards: final cards) => _buildSection(
           'Flashcards',
           Column(
-            children: cards
-                .map((c) => Card(
-                      child: ListTile(
-                        title: Text('Q: ${c.question}'),
-                        subtitle: Text('A: ${c.answer}'),
-                      ),
-                    ))
-                .toList(),
+            children: cards.map((c) => Container(
+              margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: AppColors.outlineVariant),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Q: ${c.question}', style: AppTypography.bodyMd.copyWith(color: AppColors.onSurface, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text('A: ${c.answer}', style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
+                ],
+              ),
+            )).toList(),
           ),
         ),
       AIMindMapReady(mermaidCode: final code) => _buildSection(
           'Mind Map',
           Container(
-            padding: const EdgeInsets.all(16),
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(8),
+              color: AppColors.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
-            child: SelectableText(
-              code,
-              style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
-            ),
+            child: SelectableText(code, style: AppTypography.codeMd.copyWith(color: AppColors.onSurface)),
           ),
         ),
       AITranslationReady(translatedText: final t) => _buildSection(
           'Translation',
-          Text(t, style: const TextStyle(fontSize: 16)),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [AppColors.primary, AppColors.secondary]),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: MarkdownBody(
+              data: t,
+              styleSheet: MarkdownStyleSheet(
+                p: AppTypography.bodyMd.copyWith(color: Colors.white),
+              ),
+            ),
+          ),
         ),
       AIGrammarFixed(correctedText: final t) => _buildSection(
           'Corrected Text',
-          Text(t, style: const TextStyle(fontSize: 16)),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [AppColors.primary, AppColors.secondary]),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: Text(t, style: AppTypography.bodyMd.copyWith(color: Colors.white)),
+          ),
         ),
       _ => const SizedBox.shrink(),
     };
@@ -268,8 +285,8 @@ class _AISummaryScreenState extends State<AISummaryScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: Theme.of(context).textTheme.headlineSmall),
-        const SizedBox(height: 12),
+        Text(title, style: AppTypography.headlineSm.copyWith(color: AppColors.onSurface)),
+        const SizedBox(height: AppSpacing.md),
         content,
       ],
     );

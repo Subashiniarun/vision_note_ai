@@ -22,7 +22,7 @@ class OCRBloc extends Bloc<OCREvent, OCRState> {
   String _language = 'en';
 
   void _onSetImage(SetOCRImage event, Emitter<OCRState> emit) {
-    emit(OCRImageReady(event.imageBytes, event.language));
+    emit(OCRImageReady(event.imageBytes, event.language, useCloudOCR: event.useCloudOCR));
     _language = event.language;
   }
 
@@ -35,7 +35,7 @@ class OCRBloc extends Bloc<OCREvent, OCRState> {
     emit(OCRExtracting());
     try {
       final result =
-          await _ocrRepository.extractText(current.imageBytes, _language);
+          await _ocrRepository.extractText(current.imageBytes, _language, useCloudOCR: current.useCloudOCR);
       emit(OCRComplete(result));
     } catch (e) {
       emit(OCRError(e.toString()));

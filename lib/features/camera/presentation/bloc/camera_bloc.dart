@@ -21,6 +21,7 @@ class CameraBloc extends Bloc<CameraEvent, CameraState> {
     on<ToggleFlash>(_onToggleFlash);
     on<ResetCapture>(_onResetCapture);
     on<DisposeCamera>(_onDispose);
+    on<ImportFromGallery>(_onImportFromGallery);
   }
 
   Future<void> _onInitialize(
@@ -84,6 +85,23 @@ class CameraBloc extends Bloc<CameraEvent, CameraState> {
     final current = state;
     if (current is CameraCaptured) {
       emit(CameraReady(current.controller, flashMode: FlashMode.off));
+    }
+  }
+
+  Future<void> _onImportFromGallery(
+    ImportFromGallery event,
+    Emitter<CameraState> emit,
+  ) async {
+    final current = state;
+    if (current is! CameraReady) return;
+    try {
+      final dir = await getTemporaryDirectory();
+      final path = '${dir.path}/${DateTime.now().millisecondsSinceEpoch}_gallery.jpg';
+      final file = File(path);
+      await file.writeAsBytes(event.imageBytes);
+      emit(CameraCaptured(current.controller, path));
+    } catch (e) {
+      emit(CameraError(e.toString()));
     }
   }
 

@@ -25,6 +25,13 @@ class UpdateCorner extends ImageProcessEvent {
   List<Object> get props => [index, position];
 }
 
+class UpdateCorners extends ImageProcessEvent {
+  final List<Offset> corners;
+  const UpdateCorners(this.corners);
+  @override
+  List<Object> get props => [corners];
+}
+
 class ApplyCrop extends ImageProcessEvent {
   const ApplyCrop();
   @override
@@ -66,6 +73,12 @@ class ApplyEnhancement extends ImageProcessEvent {
 
 class ResetEnhancement extends ImageProcessEvent {
   const ResetEnhancement();
+  @override
+  List<Object> get props => [];
+}
+
+class HandwritingPreprocess extends ImageProcessEvent {
+  const HandwritingPreprocess();
   @override
   List<Object> get props => [];
 }

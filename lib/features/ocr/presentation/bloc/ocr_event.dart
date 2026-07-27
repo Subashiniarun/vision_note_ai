@@ -7,9 +7,10 @@ abstract class OCREvent extends Equatable {
 class SetOCRImage extends OCREvent {
   final Uint8List imageBytes;
   final String language;
-  const SetOCRImage(this.imageBytes, this.language);
+  final bool useCloudOCR;
+  const SetOCRImage(this.imageBytes, this.language, {this.useCloudOCR = false});
   @override
-  List<Object> get props => [imageBytes, language];
+  List<Object> get props => [imageBytes, language, useCloudOCR];
 }
 
 class ExtractTextRequest extends OCREvent {

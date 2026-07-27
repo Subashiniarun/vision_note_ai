@@ -173,6 +173,31 @@ char* auto_enhance(unsigned char* imageData, int width, int height, int channels
     }
 }
 
+char* preprocess_for_handwriting(unsigned char* imageData, int width, int height, int channels) {
+    try {
+        cv::Mat src = bufferToMat(imageData, width, height, channels);
+        cv::Mat gray, binary, closed;
+
+        cv::cvtColor(src, gray, cv::COLOR_BGRA2GRAY);
+        cv::GaussianBlur(gray, gray, cv::Size(3, 3), 0.8);
+
+        cv::adaptiveThreshold(gray, binary, 255,
+            cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 15, 6);
+
+        cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+        cv::morphologyEx(binary, closed, cv::MORPH_CLOSE, kernel);
+
+        cv::Mat result;
+        cv::cvtColor(closed, result, cv::COLOR_GRAY2BGRA);
+
+        cv::Mat rgba = matToRGBA(result);
+        std::string b64 = matToBase64(rgba);
+        return strdup(b64.c_str());
+    } catch (const std::exception& e) {
+        return strdup("");
+    }
+}
+
 #ifdef __cplusplus
 }
 #endif

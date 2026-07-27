@@ -12,4 +12,5 @@ abstract class IImageProcessor {
   Future<Uint8List> deskew(Uint8List image);
   Future<List<Offset>> detectDocumentCorners(Uint8List image);
   Future<Uint8List> resizeImage(Uint8List image, int maxWidth, int maxHeight);
+  Future<Uint8List> preprocessForHandwriting(Uint8List image);
 }

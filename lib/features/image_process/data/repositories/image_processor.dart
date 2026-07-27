@@ -200,6 +200,28 @@ class ImageProcessor implements IImageProcessor {
   }
 
   @override
+  Future<Uint8List> preprocessForHandwriting(Uint8List image) async {
+    _log.info('Running handwriting-specific preprocessing');
+    if (_native != null) {
+      try {
+        final d = await _decode(image);
+        final result = _native!.preprocessForHandwriting(d.data, d.w, d.h);
+        if (result != null) return result;
+      } catch (e) {
+        _log.warning('Native handwriting preproc failed, falling back', e);
+      }
+    }
+    try {
+      final d = await _decode(image);
+      final result = await Isolate.run(() => _handwritingPipeline(d.data, d.w, d.h));
+      return _encode(result, d.w, d.h);
+    } catch (e) {
+      _log.severe('Handwriting preprocessing failed', e);
+      return image;
+    }
+  }
+
+  @override
   Future<List<Offset>> detectDocumentCorners(Uint8List image) async {
     _log.info('Detecting document corners');
     try {
@@ -278,6 +300,85 @@ class ImageProcessor implements IImageProcessor {
       out[i * 4 + 3] = 255;
     }
     return out;
+  }
+
+  static Uint8List _handwritingPipeline(Uint8List rgba, int w, int h) {
+    var gray = _rgbaToGray(rgba, w, h);
+    gray = _gaussianBlur(gray, w, h, 0.8);
+    gray = _adaptiveThresholdSauvola(gray, w, h, 15, 0.2, 128);
+    gray = _morphologicalClose(gray, w, h, 3);
+
+    final out = Uint8List(w * h * 4);
+    for (int i = 0; i < w * h; i++) {
+      final v = gray[i];
+      out[i * 4] = v;
+      out[i * 4 + 1] = v;
+      out[i * 4 + 2] = v;
+      out[i * 4 + 3] = 255;
+    }
+    return out;
+  }
+
+  static Uint8List _adaptiveThresholdSauvola(
+      Uint8List src, int w, int h, int radius, double k, int maxVal) {
+    final dst = Uint8List(w * h);
+    for (int y = 0; y < h; y++) {
+      for (int x = 0; x < w; x++) {
+        int sum = 0, sumSq = 0, count = 0;
+        final y0 = (y - radius).clamp(0, h - 1);
+        final y1 = (y + radius).clamp(0, h - 1);
+        final x0 = (x - radius).clamp(0, w - 1);
+        final x1 = (x + radius).clamp(0, w - 1);
+        for (int ny = y0; ny <= y1; ny++) {
+          for (int nx = x0; nx <= x1; nx++) {
+            final v = src[ny * w + nx];
+            sum += v;
+            sumSq += v * v;
+            count++;
+          }
+        }
+        final mean = sum / count;
+        final stddev = (sumSq / count - mean * mean).clamp(0, double.infinity);
+        final threshold = mean * (1.0 + k * ((stddev / 128.0) - 1.0));
+        dst[y * w + x] = src[y * w + x] > threshold ? maxVal : 0;
+      }
+    }
+    return dst;
+  }
+
+  static Uint8List _morphologicalClose(Uint8List src, int w, int h, int ksize) {
+    final radius = ksize ~/ 2;
+    final tmp = Uint8List(w * h);
+
+    for (int y = 0; y < h; y++) {
+      for (int x = 0; x < w; x++) {
+        int maxV = 0;
+        for (int dy = -radius; dy <= radius; dy++) {
+          for (int dx = -radius; dx <= radius; dx++) {
+            final ny = (y + dy).clamp(0, h - 1);
+            final nx = (x + dx).clamp(0, w - 1);
+            if (src[ny * w + nx] > maxV) maxV = src[ny * w + nx];
+          }
+        }
+        tmp[y * w + x] = maxV;
+      }
+    }
+
+    final dst = Uint8List(w * h);
+    for (int y = 0; y < h; y++) {
+      for (int x = 0; x < w; x++) {
+        int minV = 255;
+        for (int dy = -radius; dy <= radius; dy++) {
+          for (int dx = -radius; dx <= radius; dx++) {
+            final ny = (y + dy).clamp(0, h - 1);
+            final nx = (x + dx).clamp(0, w - 1);
+            if (tmp[ny * w + nx] < minV) minV = tmp[ny * w + nx];
+          }
+        }
+        dst[y * w + x] = minV;
+      }
+    }
+    return dst;
   }
 
   static Uint8List _brightnessPixels(Uint8List rgba, int delta) {

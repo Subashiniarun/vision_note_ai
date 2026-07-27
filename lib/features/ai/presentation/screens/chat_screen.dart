@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:auto_route/auto_route.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_elevation.dart';
 import '../bloc/ai_bloc.dart';
 import '../../domain/entities/ai_models.dart';
 import '../../../../core/di/injection.dart';
@@ -61,8 +67,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   if (state is ChatActive) {
                     return _buildChatMessages(state.messages);
                   }
-                  return const Center(
-                    child: Text('Ask a question about your document'),
+                  return Center(
+                    child: Text('Ask a question about your document', style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
                   );
                 },
               ),
@@ -77,25 +83,32 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildChatMessages(List<ChatMessage> messages) {
     return ListView.builder(
       controller: _scrollController,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       itemCount: messages.length,
       itemBuilder: (context, index) {
         final msg = messages[index];
         return Align(
           alignment: msg.isUser ? Alignment.centerRight : Alignment.centerLeft,
           child: Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+            padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               color: msg.isUser
-                  ? Theme.of(context).colorScheme.primaryContainer
-                  : Theme.of(context).colorScheme.surfaceVariant,
-              borderRadius: BorderRadius.circular(12),
+                  ? AppColors.primary
+                  : AppColors.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
             constraints: BoxConstraints(
               maxWidth: MediaQuery.of(context).size.width * 0.75,
             ),
-            child: Text(msg.content),
+            child: MarkdownBody(
+              data: msg.content,
+              styleSheet: MarkdownStyleSheet(
+                p: AppTypography.bodyMd.copyWith(
+                  color: msg.isUser ? Colors.white : AppColors.onSurface,
+                ),
+              ),
+            ),
           ),
         );
       },
@@ -104,16 +117,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildInputBar() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
+        color: AppColors.surface,
+        boxShadow: AppElevation.level1,
       ),
       child: Row(
         children: [
@@ -122,19 +129,24 @@ class _ChatScreenState extends State<ChatScreen> {
               controller: _controller,
               decoration: const InputDecoration(
                 hintText: 'Ask a question...',
-                border: OutlineInputBorder(),
                 contentPadding: EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.md,
                 ),
               ),
               onSubmitted: _sendMessage,
             ),
           ),
-          const SizedBox(width: 8),
-          IconButton.filled(
-            icon: const Icon(Icons.send),
-            onPressed: () => _sendMessage(_controller.text),
+          const SizedBox(width: AppSpacing.sm),
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(colors: [AppColors.primary, AppColors.secondary]),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.send, color: Colors.white),
+              onPressed: () => _sendMessage(_controller.text),
+            ),
           ),
         ],
       ),

@@ -52,6 +52,20 @@ typedef AutoEnhanceDart = Pointer<Utf8> Function(
   int channels,
 );
 
+typedef HandwritingProcNative = Pointer<Utf8> Function(
+  Pointer<Uint8> imageData,
+  Int32 width,
+  Int32 height,
+  Int32 channels,
+);
+
+typedef HandwritingProcDart = Pointer<Utf8> Function(
+  Pointer<Uint8> imageData,
+  int width,
+  int height,
+  int channels,
+);
+
 class OpenCVBindings {
   DynamicLibrary? _lib;
 
@@ -81,5 +95,11 @@ class OpenCVBindings {
   AutoEnhanceDart get autoEnhance {
     return _library
         .lookupFunction<AutoEnhanceNative, AutoEnhanceDart>('auto_enhance');
+  }
+
+  HandwritingProcDart get preprocessForHandwriting {
+    return _library
+        .lookupFunction<HandwritingProcNative, HandwritingProcDart>(
+            'preprocess_for_handwriting');
   }
 }

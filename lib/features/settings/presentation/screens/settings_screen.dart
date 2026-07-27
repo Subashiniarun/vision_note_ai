@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:auto_route/auto_route.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_widgets.dart';
 import '../../domain/entities/app_settings.dart';
 import '../bloc/settings_bloc.dart';
@@ -32,7 +35,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         body: BlocBuilder<SettingsBloc, SettingsState>(
           builder: (context, state) {
             if (state is! SettingsLoaded) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator(color: AppColors.primary));
             }
             return _buildSettings(context, state.settings);
           },
@@ -45,98 +48,167 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return ListView(
       children: [
         _buildSection('Appearance'),
-        SwitchListTile(
-          title: const Text('Dark Mode'),
-          subtitle: const Text('Toggle dark/light theme'),
-          value: settings.themeMode == 'dark',
-          onChanged: (v) => _settingsBloc.add(
-            UpdateTheme(v ? 'dark' : 'light'),
+        _buildPremiumCard(
+          child: ListTile(
+            title: const Text('Dark Mode'),
+            subtitle: const Text('Toggle dark/light theme'),
+            trailing: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return RotationTransition(
+                  turns: animation,
+                  child: ScaleTransition(scale: animation, child: child),
+                );
+              },
+              child: Icon(
+                settings.themeMode == 'dark' ? Icons.dark_mode : Icons.light_mode,
+                key: ValueKey<String>(settings.themeMode),
+                color: settings.themeMode == 'dark' ? AppColors.primary : const Color(0xFFF59E0B),
+                size: 28,
+              ),
+            ),
+            onTap: () => _settingsBloc.add(UpdateTheme(settings.themeMode == 'dark' ? 'light' : 'dark')),
           ),
         ),
-        const Divider(),
 
         _buildSection('OCR'),
-        ListTile(
-          title: const Text('OCR Language'),
-          subtitle: Text(_languageName(settings.ocrLanguage)),
-          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-          onTap: () => _showLanguagePicker(context, settings),
+        _buildPremiumCard(
+          child: ListTile(
+            title: const Text('OCR Language'),
+            subtitle: Text(_languageName(settings.ocrLanguage), style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.onSurfaceVariant),
+            onTap: () => _showLanguagePicker(context, settings),
+          ),
         ),
-        const Divider(),
 
         _buildSection('AI'),
-        ListTile(
-          title: const Text('AI Provider'),
-          subtitle: Text(settings.aiProvider == 'gemini' ? 'Gemini' : 'OpenAI'),
-          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-          onTap: () => _showProviderPicker(context, settings),
+        _buildPremiumCard(
+          child: Column(
+            children: [
+              ListTile(
+                title: const Text('AI Provider'),
+                subtitle: Text(settings.aiProvider == 'gemini' ? 'Gemini' : 'OpenAI', style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.onSurfaceVariant),
+                onTap: () => _showProviderPicker(context, settings),
+              ),
+              const Divider(height: 1, indent: 16, endIndent: 16, color: AppColors.outlineVariant),
+              ListTile(
+                title: const Text('API Key'),
+                subtitle: const Text('Configure your AI provider API key', style: AppTypography.labelMd),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.onSurfaceVariant),
+                onTap: () => _showApiKeyDialog(context, settings),
+              ),
+            ],
+          ),
         ),
-        ListTile(
-          title: const Text('API Key'),
-          subtitle: const Text('Configure your AI provider API key'),
-          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-          onTap: () => _showApiKeyDialog(context, settings),
-        ),
-        const Divider(),
 
         _buildSection('Image'),
-        ListTile(
-          title: const Text('Image Quality'),
-          subtitle: Text('${settings.imageQuality}%'),
-          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-          onTap: () => _showQualitySlider(context, settings),
+        _buildPremiumCard(
+          child: Column(
+            children: [
+              ListTile(
+                title: const Text('Image Quality'),
+                subtitle: Text('${settings.imageQuality}%', style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.onSurfaceVariant),
+                onTap: () => _showQualitySlider(context, settings),
+              ),
+              const Divider(height: 1, indent: 16, endIndent: 16, color: AppColors.outlineVariant),
+              SwitchListTile(
+                title: const Text('Compression'),
+                subtitle: const Text('Compress stored images'),
+                activeTrackColor: AppColors.primary.withValues(alpha: 0.3),
+                activeThumbColor: AppColors.primary,
+                value: settings.compressionEnabled,
+                onChanged: (v) => _settingsBloc.add(UpdateCompression(v)),
+              ),
+            ],
+          ),
         ),
-        SwitchListTile(
-          title: const Text('Compression'),
-          subtitle: const Text('Compress stored images'),
-          value: settings.compressionEnabled,
-          onChanged: (v) => _settingsBloc.add(UpdateCompression(v)),
-        ),
-        const Divider(),
 
         _buildSection('Capture'),
-        SwitchListTile(
-          title: const Text('Auto Capture'),
-          subtitle: const Text('Auto-capture when document is stable'),
-          value: settings.autoCapture,
-          onChanged: (v) => _settingsBloc.add(UpdateAutoCapture(v)),
+        _buildPremiumCard(
+          child: Column(
+            children: [
+              SwitchListTile(
+                title: const Text('Auto Capture'),
+                subtitle: const Text('Auto-capture when document is stable'),
+                activeTrackColor: AppColors.primary.withValues(alpha: 0.3),
+                activeThumbColor: AppColors.primary,
+                value: settings.autoCapture,
+                onChanged: (v) => _settingsBloc.add(UpdateAutoCapture(v)),
+              ),
+              const Divider(height: 1, indent: 16, endIndent: 16, color: AppColors.outlineVariant),
+              SwitchListTile(
+                title: const Text('Auto Enhance'),
+                subtitle: const Text('Auto-enhance after capture'),
+                activeTrackColor: AppColors.primary.withValues(alpha: 0.3),
+                activeThumbColor: AppColors.primary,
+                value: settings.autoEnhance,
+                onChanged: (v) => _settingsBloc.add(UpdateAutoEnhance(v)),
+              ),
+            ],
+          ),
         ),
-        SwitchListTile(
-          title: const Text('Auto Enhance'),
-          subtitle: const Text('Auto-enhance after capture'),
-          value: settings.autoEnhance,
-          onChanged: (v) => _settingsBloc.add(UpdateAutoEnhance(v)),
-        ),
-        const Divider(),
 
         _buildSection('Export'),
-        ListTile(
-          title: const Text('Default Format'),
-          subtitle: Text(settings.defaultExportFormat.toUpperCase()),
-          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-          onTap: () => _showFormatPicker(context, settings),
+        _buildPremiumCard(
+          child: ListTile(
+            title: const Text('Default Format'),
+            subtitle: Text(settings.defaultExportFormat.toUpperCase(), style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.onSurfaceVariant),
+            onTap: () => _showFormatPicker(context, settings),
+          ),
         ),
-        const Divider(),
 
         _buildSection('About'),
-        ListTile(
-          leading: const Icon(Icons.info_outline),
-          title: const Text('About VisionNote AI'),
-          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-          onTap: () => context.pushRoute(PageRouteInfo.named('AboutRoute')),
+        _buildPremiumCard(
+          child: ListTile(
+            leading: Container(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: AppColors.primaryContainer,
+                borderRadius: BorderRadius.circular(AppSpacing.sm),
+              ),
+              child: const Icon(Icons.info_outline, size: 20, color: AppColors.onPrimaryContainer),
+            ),
+            title: const Text('About VisionNote AI'),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.onSurfaceVariant),
+            onTap: () => context.pushRoute(PageRouteInfo.named('AboutRoute')),
+          ),
         ),
+        const SizedBox(height: AppSpacing.xxl),
       ],
+    );
+  }
+
+  Widget _buildPremiumCard({required Widget child}) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: child,
+      ),
     );
   }
 
   Widget _buildSection(String title) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xs),
       child: Text(
         title,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-            ),
+        style: AppTypography.labelLg.copyWith(color: AppColors.primary),
       ),
     );
   }
@@ -153,19 +225,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _showLanguagePicker(BuildContext context, AppSettings settings) {
     showDialog(
       context: context,
-      builder: (_) => SimpleDialog(
+      builder: (_) => AlertDialog(
         title: const Text('Select OCR Language'),
-        children: [
-          'en', 'es', 'fr', 'de', 'it', 'pt', 'nl', 'ru', 'ja', 'ko', 'zh',
-        ].map((code) {
-          return SimpleDialogOption(
-            onPressed: () {
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            'en', 'es', 'fr', 'de', 'it', 'pt', 'nl', 'ru', 'ja', 'ko', 'zh',
+          ].map((code) => ListTile(
+            title: Text(_languageName(code)),
+            onTap: () {
               _settingsBloc.add(UpdateOCRLanguage(code));
               Navigator.pop(context);
             },
-            child: Text(_languageName(code)),
-          );
-        }).toList(),
+          )).toList(),
+        ),
       ),
     );
   }
@@ -173,24 +246,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _showProviderPicker(BuildContext context, AppSettings settings) {
     showDialog(
       context: context,
-      builder: (_) => SimpleDialog(
+      builder: (_) => AlertDialog(
         title: const Text('Select AI Provider'),
-        children: [
-          SimpleDialogOption(
-            onPressed: () {
-              _settingsBloc.add(const UpdateAIProvider('gemini'));
-              Navigator.pop(context);
-            },
-            child: const Text('Gemini'),
-          ),
-          SimpleDialogOption(
-            onPressed: () {
-              _settingsBloc.add(const UpdateAIProvider('openai'));
-              Navigator.pop(context);
-            },
-            child: const Text('OpenAI'),
-          ),
-        ],
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: const Text('Gemini'),
+              leading: const Icon(Icons.auto_awesome, color: AppColors.primary),
+              onTap: () {
+                _settingsBloc.add(const UpdateAIProvider('gemini'));
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: const Text('OpenAI'),
+              leading: const Icon(Icons.auto_awesome, color: AppColors.primary),
+              onTap: () {
+                _settingsBloc.add(const UpdateAIProvider('openai'));
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -205,7 +283,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           controller: controller,
           decoration: const InputDecoration(
             hintText: 'Enter your API key',
-            border: OutlineInputBorder(),
           ),
           obscureText: true,
         ),
@@ -214,17 +291,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
-          FilledButton(
+          VNAButton(
+            label: 'Save',
             onPressed: () {
               if (controller.text.isNotEmpty) {
-                _settingsBloc.add(UpdateAIKey(
-                  settings.aiProvider,
-                  controller.text,
-                ));
+                _settingsBloc.add(UpdateAIKey(settings.aiProvider, controller.text));
                 Navigator.pop(context);
               }
             },
-            child: const Text('Save'),
           ),
         ],
       ),
@@ -242,24 +316,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('$quality%'),
+                Text('$quality%', style: AppTypography.headlineSm.copyWith(color: AppColors.primary)),
                 Slider(
                   value: quality.toDouble(),
                   min: 10,
                   max: 100,
                   divisions: 9,
+                  activeColor: AppColors.primary,
                   label: '$quality%',
                   onChanged: (v) => setDialogState(() => quality = v.round()),
                 ),
               ],
             ),
             actions: [
-              FilledButton(
+              VNAButton(
+                label: 'Save',
                 onPressed: () {
                   _settingsBloc.add(UpdateImageQuality(quality));
                   Navigator.pop(context);
                 },
-                child: const Text('Save'),
               ),
             ],
           );
@@ -271,17 +346,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _showFormatPicker(BuildContext context, AppSettings settings) {
     showDialog(
       context: context,
-      builder: (_) => SimpleDialog(
+      builder: (_) => AlertDialog(
         title: const Text('Default Export Format'),
-        children: ['markdown', 'txt', 'pdf', 'json'].map((format) {
-          return SimpleDialogOption(
-            onPressed: () {
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: ['markdown', 'txt', 'pdf', 'json'].map((format) => ListTile(
+            title: Text(format.toUpperCase()),
+            onTap: () {
               _settingsBloc.add(UpdateDefaultExport(format));
               Navigator.pop(context);
             },
-            child: Text(format.toUpperCase()),
-          );
-        }).toList(),
+          )).toList(),
+        ),
       ),
     );
   }
