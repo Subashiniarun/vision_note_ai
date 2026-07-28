@@ -49,6 +49,7 @@ class OpenAIClient {
     required Uint8List imageBytes,
     required String mimeType,
     String? model,
+    double temperature = 0.1,
   }) async {
     final apiKey = await _secureStorage.getOpenAIKey();
     if (apiKey == null || apiKey.isEmpty) {
@@ -78,7 +79,7 @@ class OpenAIClient {
             ],
           },
         ],
-        'temperature': 0.1,
+        'temperature': temperature,
         'max_tokens': 4096,
       },
     );

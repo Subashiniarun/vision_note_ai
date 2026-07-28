@@ -53,7 +53,8 @@ class GeminiClient {
     );
 
     return response['candidates']?[0]?['content']?['parts']?[0]?['text']
-        as String? ?? '';
+            as String? ??
+        '';
   }
 
   Future<String> transcribeImage({
@@ -61,6 +62,7 @@ class GeminiClient {
     required Uint8List imageBytes,
     required String mimeType,
     String? model,
+    double temperature = 0.1,
   }) async {
     final apiKey = await _secureStorage.getGeminiKey();
     if (apiKey == null || apiKey.isEmpty) {
@@ -91,13 +93,14 @@ class GeminiClient {
           },
         ],
         'generationConfig': {
-          'temperature': 0.1,
+          'temperature': temperature,
           'maxOutputTokens': 4096,
         },
       },
     );
 
     return response['candidates']?[0]?['content']?['parts']?[0]?['text']
-        as String? ?? '';
+            as String? ??
+        '';
   }
 }
