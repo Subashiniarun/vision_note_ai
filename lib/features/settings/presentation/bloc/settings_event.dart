@@ -61,6 +61,20 @@ class UpdateDefaultExport extends SettingsEvent {
   List<Object> get props => [format];
 }
 
+class UpdateAutoExportPdf extends SettingsEvent {
+  final bool enabled;
+  const UpdateAutoExportPdf(this.enabled);
+  @override
+  List<Object> get props => [enabled];
+}
+
+class UpdateSaveAsMarkdown extends SettingsEvent {
+  final bool enabled;
+  const UpdateSaveAsMarkdown(this.enabled);
+  @override
+  List<Object> get props => [enabled];
+}
+
 class UpdateAutoCapture extends SettingsEvent {
   final bool enabled;
   const UpdateAutoCapture(this.enabled);

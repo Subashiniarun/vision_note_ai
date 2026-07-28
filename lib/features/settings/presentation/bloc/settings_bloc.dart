@@ -20,6 +20,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<UpdateImageQuality>(_onUpdateImageQuality);
     on<UpdateCompression>(_onUpdateCompression);
     on<UpdateDefaultExport>(_onUpdateDefaultExport);
+    on<UpdateAutoExportPdf>(_onUpdateAutoExportPdf);
+    on<UpdateSaveAsMarkdown>(_onUpdateSaveAsMarkdown);
     on<UpdateAutoCapture>(_onUpdateAutoCapture);
     on<UpdateAutoEnhance>(_onUpdateAutoEnhance);
     on<CompleteOnboarding>(_onCompleteOnboarding);
@@ -112,6 +114,26 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   ) async {
     await _saveAndEmit(
       _settings.copyWith(defaultExportFormat: event.format),
+      emit,
+    );
+  }
+
+  Future<void> _onUpdateAutoExportPdf(
+    UpdateAutoExportPdf event,
+    Emitter<SettingsState> emit,
+  ) async {
+    await _saveAndEmit(
+      _settings.copyWith(autoExportPdf: event.enabled),
+      emit,
+    );
+  }
+
+  Future<void> _onUpdateSaveAsMarkdown(
+    UpdateSaveAsMarkdown event,
+    Emitter<SettingsState> emit,
+  ) async {
+    await _saveAndEmit(
+      _settings.copyWith(saveAsMarkdown: event.enabled),
       emit,
     );
   }

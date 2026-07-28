@@ -8,6 +8,8 @@ class AppSettings extends Equatable {
   final int imageQuality;
   final bool compressionEnabled;
   final String defaultExportFormat;
+  final bool autoExportPdf;
+  final bool saveAsMarkdown;
   final bool autoCapture;
   final bool autoEnhance;
   final bool onboardingComplete;
@@ -17,9 +19,11 @@ class AppSettings extends Equatable {
     this.ocrLanguage = 'en',
     this.aiProvider = 'gemini',
     this.aiModel = '',
-    this.imageQuality = 90,
+    this.imageQuality = 85,
     this.compressionEnabled = true,
     this.defaultExportFormat = 'markdown',
+    this.autoExportPdf = true,
+    this.saveAsMarkdown = false,
     this.autoCapture = true,
     this.autoEnhance = true,
     this.onboardingComplete = false,
@@ -33,6 +37,8 @@ class AppSettings extends Equatable {
     int? imageQuality,
     bool? compressionEnabled,
     String? defaultExportFormat,
+    bool? autoExportPdf,
+    bool? saveAsMarkdown,
     bool? autoCapture,
     bool? autoEnhance,
     bool? onboardingComplete,
@@ -45,6 +51,8 @@ class AppSettings extends Equatable {
       imageQuality: imageQuality ?? this.imageQuality,
       compressionEnabled: compressionEnabled ?? this.compressionEnabled,
       defaultExportFormat: defaultExportFormat ?? this.defaultExportFormat,
+      autoExportPdf: autoExportPdf ?? this.autoExportPdf,
+      saveAsMarkdown: saveAsMarkdown ?? this.saveAsMarkdown,
       autoCapture: autoCapture ?? this.autoCapture,
       autoEnhance: autoEnhance ?? this.autoEnhance,
       onboardingComplete: onboardingComplete ?? this.onboardingComplete,
@@ -60,6 +68,8 @@ class AppSettings extends Equatable {
         imageQuality,
         compressionEnabled,
         defaultExportFormat,
+        autoExportPdf,
+        saveAsMarkdown,
         autoCapture,
         autoEnhance,
         onboardingComplete,

@@ -27,6 +27,7 @@ class _OCRPreviewScreenState extends State<OCRPreviewScreen> {
   final _textController = TextEditingController();
   Uint8List? _enhancedImage;
   String? _imagePath;
+  Scan? _savedScan;
 
   @override
   void initState() {
@@ -45,6 +46,15 @@ class _OCRPreviewScreenState extends State<OCRPreviewScreen> {
   }
 
   Future<Scan> _saveScan(String text) async {
+    if (_savedScan != null) {
+      if (_savedScan!.ocrText != text) {
+        final updatedScan = _savedScan!.copyWith(ocrText: text);
+        final saveScan = getIt<SaveScan>();
+        _savedScan = await saveScan(updatedScan);
+      }
+      return _savedScan!;
+    }
+
     final dir = await getApplicationDocumentsDirectory();
     final ts = DateTime.now().millisecondsSinceEpoch;
 
@@ -69,7 +79,8 @@ class _OCRPreviewScreenState extends State<OCRPreviewScreen> {
     );
 
     final saveScan = getIt<SaveScan>();
-    return saveScan(scan);
+    _savedScan = await saveScan(scan);
+    return _savedScan!;
   }
 
   @override

@@ -19,11 +19,19 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late SettingsBloc _settingsBloc;
+  final TextEditingController _apiKeyController = TextEditingController(text: '................');
+  bool _isApiKeyObscured = true;
 
   @override
   void initState() {
     super.initState();
     _settingsBloc = getIt<SettingsBloc>()..add(const LoadSettings());
+  }
+  
+  @override
+  void dispose() {
+    _apiKeyController.dispose();
+    super.dispose();
   }
 
   @override
@@ -31,7 +39,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return BlocProvider.value(
       value: _settingsBloc,
       child: Scaffold(
-        appBar: AppBar(title: const Text('Settings')),
+        backgroundColor: const Color(0xFFF8F9FE),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.menu, color: AppColors.primary),
+            onPressed: () {},
+          ),
+          title: Text(
+            'VisionNote AI',
+            style: AppTypography.headlineSm.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          centerTitle: true,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: CircleAvatar(
+                radius: 16,
+                backgroundColor: AppColors.primaryContainer,
+                child: const Icon(Icons.person, size: 20, color: AppColors.primary),
+              ),
+            ),
+          ],
+        ),
         body: BlocBuilder<SettingsBloc, SettingsState>(
           builder: (context, state) {
             if (state is! SettingsLoaded) {
@@ -46,134 +80,325 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildSettings(BuildContext context, AppSettings settings) {
     return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 0),
       children: [
-        _buildSection('Appearance'),
-        _buildPremiumCard(
-          child: ListTile(
-            title: const Text('Dark Mode'),
-            subtitle: const Text('Toggle dark/light theme'),
-            trailing: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              transitionBuilder: (Widget child, Animation<double> animation) {
-                return RotationTransition(
-                  turns: animation,
-                  child: ScaleTransition(scale: animation, child: child),
-                );
-              },
-              child: Icon(
-                settings.themeMode == 'dark' ? Icons.dark_mode : Icons.light_mode,
-                key: ValueKey<String>(settings.themeMode),
-                color: settings.themeMode == 'dark' ? AppColors.primary : const Color(0xFFF59E0B),
-                size: 28,
+        const SizedBox(height: AppSpacing.md),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Settings',
+                style: AppTypography.headlineLg.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF1B2342),
+                ),
               ),
-            ),
-            onTap: () => _settingsBloc.add(UpdateTheme(settings.themeMode == 'dark' ? 'light' : 'dark')),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                'Customize your scanning and AI experience.',
+                style: AppTypography.bodyLg.copyWith(
+                  color: const Color(0xFF4B5563),
+                ),
+              ),
+            ],
           ),
         ),
+        const SizedBox(height: AppSpacing.xl),
 
-        _buildSection('OCR'),
-        _buildPremiumCard(
-          child: ListTile(
-            title: const Text('OCR Language'),
-            subtitle: Text(_languageName(settings.ocrLanguage), style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.onSurfaceVariant),
-            onTap: () => _showLanguagePicker(context, settings),
-          ),
-        ),
-
-        _buildSection('AI'),
+        _buildSectionTitle('APPEARANCE'),
         _buildPremiumCard(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ListTile(
-                title: const Text('AI Provider'),
-                subtitle: Text(settings.aiProvider == 'gemini' ? 'Gemini' : 'OpenAI', style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.onSurfaceVariant),
-                onTap: () => _showProviderPicker(context, settings),
+              const ListTile(
+                leading: Icon(Icons.palette_outlined, color: Color(0xFF4B5563)),
+                title: Text('Theme', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
+                subtitle: Text('Switch interface appearance', style: TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
+                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               ),
-              const Divider(height: 1, indent: 16, endIndent: 16, color: AppColors.outlineVariant),
-              ListTile(
-                title: const Text('API Key'),
-                subtitle: const Text('Configure your AI provider API key', style: AppTypography.labelMd),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.onSurfaceVariant),
-                onTap: () => _showApiKeyDialog(context, settings),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Container(
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEDF2FF),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      _buildThemeSegment('Light', Icons.light_mode_outlined, settings.themeMode == 'light', () {
+                        _settingsBloc.add(const UpdateTheme('light'));
+                      }),
+                      _buildThemeSegment('Dark', Icons.dark_mode_outlined, settings.themeMode == 'dark', () {
+                        _settingsBloc.add(const UpdateTheme('dark'));
+                      }),
+                      _buildThemeSegment('System', Icons.settings_system_daydream_outlined, settings.themeMode == 'system', () {
+                        _settingsBloc.add(const UpdateTheme('system'));
+                      }),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
         ),
 
-        _buildSection('Image'),
+        _buildSectionTitle('OCR & SCANNING'),
         _buildPremiumCard(
           child: Column(
             children: [
               ListTile(
-                title: const Text('Image Quality'),
-                subtitle: Text('${settings.imageQuality}%', style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.onSurfaceVariant),
-                onTap: () => _showQualitySlider(context, settings),
+                leading: const Icon(Icons.translate, color: Color(0xFF4B5563)),
+                title: const Text('Recognition Language', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
+                subtitle: const Text('Primary text detection\nlanguage', style: TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
+                isThreeLine: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                trailing: InkWell(
+                  onTap: () => _showLanguagePicker(context, settings),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEDF2FF),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _languageName(settings.ocrLanguage),
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-              const Divider(height: 1, indent: 16, endIndent: 16, color: AppColors.outlineVariant),
-              SwitchListTile(
-                title: const Text('Compression'),
-                subtitle: const Text('Compress stored images'),
-                activeTrackColor: AppColors.primary.withValues(alpha: 0.3),
-                activeThumbColor: AppColors.primary,
-                value: settings.compressionEnabled,
-                onChanged: (v) => _settingsBloc.add(UpdateCompression(v)),
+              const Divider(height: 1, indent: 16, endIndent: 16, color: Color(0xFFF3F4F6)),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.hd_outlined, color: Color(0xFF4B5563)),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Image Quality', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
+                              const SizedBox(height: 4),
+                              const Text('Balance speed and detail', style: TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
+                              const SizedBox(height: 8),
+                              SliderTheme(
+                                data: SliderThemeData(
+                                  trackHeight: 6,
+                                  activeTrackColor: const Color(0xFFDAE2FF),
+                                  inactiveTrackColor: const Color(0xFFDAE2FF),
+                                  thumbColor: AppColors.primary,
+                                  overlayColor: AppColors.primary.withOpacity(0.1),
+                                ),
+                                child: Slider(
+                                  value: settings.imageQuality.toDouble(),
+                                  min: 10,
+                                  max: 100,
+                                  onChanged: (val) {
+                                    _settingsBloc.add(UpdateImageQuality(val.round()));
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          '${settings.imageQuality}%',
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
 
-        _buildSection('Capture'),
+        _buildSectionTitle('AI ENGINE'),
+        _buildPremiumCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    const Icon(Icons.smart_toy_outlined, color: Color(0xFF4B5563)),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Text('Service Provider', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
+                    ),
+                    Container(
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEDF2FF),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: Row(
+                        children: [
+                          _buildAISegment('Gemini', settings.aiProvider == 'gemini', () {
+                            _settingsBloc.add(const UpdateAIProvider('gemini'));
+                          }),
+                          _buildAISegment('OpenAI', settings.aiProvider == 'openai', () {
+                            _settingsBloc.add(const UpdateAIProvider('openai'));
+                          }),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text('API Key', style: TextStyle(fontSize: 14, color: Color(0xFF4B5563))),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3F4F6),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: TextField(
+                            controller: _apiKeyController,
+                            obscureText: _isApiKeyObscured,
+                            readOnly: true,
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              isDense: true,
+                            ),
+                            style: const TextStyle(fontSize: 24, letterSpacing: 2, height: 1.0),
+                            onTap: () {
+                              _showApiKeyDialog(context, settings);
+                            },
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          _isApiKeyObscured ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                          color: const Color(0xFF6B7280),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isApiKeyObscured = !_isApiKeyObscured;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  'Keys are encrypted and stored locally.',
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    fontSize: 13,
+                    color: Color(0xFF6B7280),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        _buildSectionTitle('EXPORT DEFAULTS'),
         _buildPremiumCard(
           child: Column(
             children: [
               SwitchListTile(
-                title: const Text('Auto Capture'),
-                subtitle: const Text('Auto-capture when document is stable'),
-                activeTrackColor: AppColors.primary.withValues(alpha: 0.3),
-                activeThumbColor: AppColors.primary,
-                value: settings.autoCapture,
-                onChanged: (v) => _settingsBloc.add(UpdateAutoCapture(v)),
+                secondary: const Icon(Icons.description_outlined, color: Color(0xFF4B5563)),
+                title: const Text('Auto-export to PDF', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
+                activeColor: Colors.white,
+                activeTrackColor: AppColors.primary,
+                inactiveThumbColor: Colors.white,
+                inactiveTrackColor: const Color(0xFFD1D5DB),
+                value: settings.autoExportPdf,
+                onChanged: (val) {
+                  _settingsBloc.add(UpdateAutoExportPdf(val));
+                },
               ),
-              const Divider(height: 1, indent: 16, endIndent: 16, color: AppColors.outlineVariant),
+              const Divider(height: 1, indent: 16, endIndent: 16, color: Color(0xFFF3F4F6)),
               SwitchListTile(
-                title: const Text('Auto Enhance'),
-                subtitle: const Text('Auto-enhance after capture'),
-                activeTrackColor: AppColors.primary.withValues(alpha: 0.3),
-                activeThumbColor: AppColors.primary,
-                value: settings.autoEnhance,
-                onChanged: (v) => _settingsBloc.add(UpdateAutoEnhance(v)),
+                secondary: const Icon(Icons.code_outlined, color: Color(0xFF4B5563)),
+                title: const Text('Save as Markdown', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
+                activeColor: Colors.white,
+                activeTrackColor: AppColors.primary,
+                inactiveThumbColor: Colors.white,
+                inactiveTrackColor: const Color(0xFFD1D5DB),
+                value: settings.saveAsMarkdown,
+                onChanged: (val) {
+                  _settingsBloc.add(UpdateSaveAsMarkdown(val));
+                },
               ),
             ],
           ),
         ),
 
-        _buildSection('Export'),
+        _buildSectionTitle('DATA MANAGEMENT'),
         _buildPremiumCard(
-          child: ListTile(
-            title: const Text('Default Format'),
-            subtitle: Text(settings.defaultExportFormat.toUpperCase(), style: AppTypography.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.onSurfaceVariant),
-            onTap: () => _showFormatPicker(context, settings),
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.storage_outlined, color: Color(0xFF4B5563)),
+                title: const Text('Export All Library Data', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
+                trailing: const Icon(Icons.chevron_right, color: Color(0xFF6B7280)),
+                onTap: () {
+                  // Handle export
+                },
+              ),
+              const Divider(height: 1, indent: 16, endIndent: 16, color: Color(0xFFF3F4F6)),
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: Color(0xFFDC2626)),
+                title: const Text('Clear Local Cache', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16, color: Color(0xFFDC2626))),
+                trailing: const Text('248.5 MB', style: TextStyle(color: Color(0xFF4B5563), fontSize: 14)),
+                onTap: () {
+                  // Handle clear cache
+                },
+              ),
+            ],
           ),
         ),
 
-        _buildSection('About'),
-        _buildPremiumCard(
-          child: ListTile(
-            leading: Container(
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              decoration: BoxDecoration(
-                color: AppColors.primaryContainer,
-                borderRadius: BorderRadius.circular(AppSpacing.sm),
+        const SizedBox(height: AppSpacing.xxl),
+        Center(
+          child: Column(
+            children: [
+              Text(
+                'VisionNote AI v2.4.0 (Stable)',
+                style: AppTypography.labelMd.copyWith(color: const Color(0xFF9CA3AF)),
               ),
-              child: const Icon(Icons.info_outline, size: 20, color: AppColors.onPrimaryContainer),
-            ),
-            title: const Text('About VisionNote AI'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.onSurfaceVariant),
-            onTap: () => context.pushRoute(PageRouteInfo.named('AboutRoute')),
+              const SizedBox(height: 4),
+              Text(
+                'Built for High-Precision Knowledge Conversion',
+                style: AppTypography.labelMd.copyWith(color: const Color(0xFF9CA3AF)),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: AppSpacing.xxl),
@@ -181,13 +406,74 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _buildThemeSegment(String text, IconData icon, bool isSelected, VoidCallback onTap) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          margin: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    )
+                  ]
+                : [],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 20, color: isSelected ? AppColors.primary : const Color(0xFF6B7280)),
+              const SizedBox(height: 2),
+              Text(
+                text,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? AppColors.primary : const Color(0xFF6B7280),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAISegment(String text, bool isSelected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            color: isSelected ? Colors.white : const Color(0xFF6B7280),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildPremiumCard({required Widget child}) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLow,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.5)),
+        border: Border.all(color: const Color(0xFFF3F4F6)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
@@ -203,19 +489,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSection(String title) {
+  Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xs),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.sm),
       child: Text(
         title,
-        style: AppTypography.labelLg.copyWith(color: AppColors.primary),
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.2,
+          color: AppColors.primary,
+        ),
       ),
     );
   }
 
   String _languageName(String code) {
     final languages = {
-      'en': 'English', 'es': 'Spanish', 'fr': 'French',
+      'en': 'English (US)', 'es': 'Spanish', 'fr': 'French',
       'de': 'German', 'it': 'Italian', 'pt': 'Portuguese',
       'nl': 'Dutch', 'ru': 'Russian', 'ja': 'Japanese', 'ko': 'Korean', 'zh': 'Chinese',
     };
@@ -227,47 +518,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Select OCR Language'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            'en', 'es', 'fr', 'de', 'it', 'pt', 'nl', 'ru', 'ja', 'ko', 'zh',
-          ].map((code) => ListTile(
-            title: Text(_languageName(code)),
-            onTap: () {
-              _settingsBloc.add(UpdateOCRLanguage(code));
-              Navigator.pop(context);
-            },
-          )).toList(),
-        ),
-      ),
-    );
-  }
-
-  void _showProviderPicker(BuildContext context, AppSettings settings) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Select AI Provider'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: const Text('Gemini'),
-              leading: const Icon(Icons.auto_awesome, color: AppColors.primary),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              'en', 'es', 'fr', 'de', 'it', 'pt', 'nl', 'ru', 'ja', 'ko', 'zh',
+            ].map((code) => ListTile(
+              title: Text(_languageName(code)),
+              selected: settings.ocrLanguage == code,
               onTap: () {
-                _settingsBloc.add(const UpdateAIProvider('gemini'));
+                _settingsBloc.add(UpdateOCRLanguage(code));
                 Navigator.pop(context);
               },
-            ),
-            ListTile(
-              title: const Text('OpenAI'),
-              leading: const Icon(Icons.auto_awesome, color: AppColors.primary),
-              onTap: () {
-                _settingsBloc.add(const UpdateAIProvider('openai'));
-                Navigator.pop(context);
-              },
-            ),
-          ],
+            )).toList(),
+          ),
         ),
       ),
     );
@@ -301,63 +566,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
         ],
-      ),
-    );
-  }
-
-  void _showQualitySlider(BuildContext context, AppSettings settings) {
-    showDialog(
-      context: context,
-      builder: (_) => StatefulBuilder(
-        builder: (context, setDialogState) {
-          var quality = settings.imageQuality;
-          return AlertDialog(
-            title: const Text('Image Quality'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('$quality%', style: AppTypography.headlineSm.copyWith(color: AppColors.primary)),
-                Slider(
-                  value: quality.toDouble(),
-                  min: 10,
-                  max: 100,
-                  divisions: 9,
-                  activeColor: AppColors.primary,
-                  label: '$quality%',
-                  onChanged: (v) => setDialogState(() => quality = v.round()),
-                ),
-              ],
-            ),
-            actions: [
-              VNAButton(
-                label: 'Save',
-                onPressed: () {
-                  _settingsBloc.add(UpdateImageQuality(quality));
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  void _showFormatPicker(BuildContext context, AppSettings settings) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Default Export Format'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: ['markdown', 'txt', 'pdf', 'json'].map((format) => ListTile(
-            title: Text(format.toUpperCase()),
-            onTap: () {
-              _settingsBloc.add(UpdateDefaultExport(format));
-              Navigator.pop(context);
-            },
-          )).toList(),
-        ),
       ),
     );
   }
